@@ -1,0 +1,37 @@
+# Gradle
+.gradle/
+**/build/
+**/captures/
+**/.cxx/
+**/.externalNativeBuild/
+**/.kotlin/
+
+# Local configs
+local.properties
+*.log
+
+# Keystore & secrets
+*.jks
+*.keystore
+**/keystore.properties
+**/signing.properties
+google-services.json  # opcional, depende si lo quieres compartir
+
+# Android Studio / IntelliJ
+*.iml
+.idea/
+# Si quieres compartir estilos:
+#!.idea/codeStyles/
+#!.idea/codeStyles/Project.xml
+
+# OS
+.DS_Store
+Thumbs.db
+
+
+
+# APKs / outputs
+*.apk
+*.ap_
+*.dex
+*.class
