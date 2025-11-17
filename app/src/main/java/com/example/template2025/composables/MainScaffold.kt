@@ -23,6 +23,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
@@ -37,6 +38,7 @@ import com.example.template2025.screens.ModulesScreen
 
 import com.example.template2025.screens.ProfileScreen
 import com.example.template2025.screens.SettingsScreen
+import com.example.template2025.ui.theme.Template2025Theme
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
@@ -50,7 +52,7 @@ fun MainScaffold(onLogoutClick: () -> Unit, onNavigateToAuth: () -> Unit) {
 
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
-        
+
     ModalNavigationDrawer(
         drawerState = drawerState,
         drawerContent = {
@@ -147,7 +149,7 @@ fun MainScaffold(onLogoutClick: () -> Unit, onNavigateToAuth: () -> Unit) {
                 composable(Route.Home.route)     { HomeScreen() }
                 composable(Route.Profile.route)  { ProfileScreen() }
                 composable(Route.Settings.route) { SettingsScreen() }
-                composable(Route.Modules.route) { ModulesScreen() }
+                composable(Route.Modules.route) { ModulesScreen(navController = nav) } // Corregido
                 composable(Route.DailyQuests.route) { DailyQuestsScreen() }
             }
         }
@@ -206,4 +208,12 @@ fun DrawerItem(
             unselectedIconColor = Color.White
         )
     )
+}
+
+@Preview(showBackground = true, showSystemUi = true)
+@Composable
+fun MainScaffoldPreview() {
+    Template2025Theme {
+        MainScaffold(onLogoutClick = {}, onNavigateToAuth = {})
+    }
 }
