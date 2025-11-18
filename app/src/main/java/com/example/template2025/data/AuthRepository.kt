@@ -4,7 +4,9 @@ import com.example.template2025.data.api.ApiService
 import com.example.template2025.data.api.SignupRequest
 import com.example.template2025.data.api.SignupResponse
 
-class AuthRepository(private val api: ApiService) {
+class AuthRepository(
+    private val api: ApiService = ApiService.create()   // ← crea Retrofit con DEFAULT_BASE_URL
+) {
     suspend fun signup(nombre: String, correo: String, contrasena: String): Result<SignupResponse> {
         return try {
             val res = api.signup(SignupRequest(nombre, correo, contrasena))
