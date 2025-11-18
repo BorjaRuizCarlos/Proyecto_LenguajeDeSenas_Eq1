@@ -16,47 +16,63 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.template2025.R
 import com.example.template2025.composables.GlassOutlinedField
 import com.example.template2025.composables.SillaDeRuedas
 import com.example.template2025.ui.theme.BlueDark
 import com.example.template2025.ui.theme.BlueLight
-import com.example.template2025.R
-
+import com.example.template2025.viewModel.AuthViewModel
 
 @Composable
 fun RegisterScreen(
     onRegistered: () -> Unit,
     onBackToLogin: () -> Unit
 ) {
+    val vm: AuthViewModel = viewModel()
+    val ui by vm.signup.collectAsState()
+
     var name by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
-    var matricula by remember { mutableStateOf("") }
     var pass by remember { mutableStateOf("") }
 
     val fieldWidth = Modifier
         .fillMaxWidth(0.86f)
         .widthIn(max = 420.dp)
 
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    // Navega cuando se registre ok
+    LaunchedEffect(ui.success) {
+        if (ui.success) {
+            onRegistered()
+            vm.resetSignup()
+        }
+    }
+    // Muestra errores
+    LaunchedEffect(ui.error) {
+        ui.error?.let { snackbarHostState.showSnackbar(it) }
+    }
+
     Scaffold(
         topBar = {
-            // Barra clara (invertida respecto a Login)
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(44.dp)
                     .background(BlueLight)
             )
-        }
+        },
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
     ) { padding ->
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(BlueDark) // fondo azul oscuro
+                .background(BlueDark)
                 .padding(padding)
         ) {
-            // Aparato auditivo (izquierda)
             SillaDeRuedas(
-                resId = R.drawable.hearing_aid,   // 👈 nuevo
+                resId = R.drawable.hearing_aid,
                 size = 750.dp,
                 alpha = 0.20f,
                 alignment = Alignment.BottomStart,
@@ -88,7 +104,6 @@ fun RegisterScreen(
                     placeholder = "Nombre completo",
                     modifier = fieldWidth
                 )
-
                 Spacer(Modifier.height(12.dp))
 
                 GlassOutlinedField(
@@ -97,7 +112,6 @@ fun RegisterScreen(
                     placeholder = "Correo",
                     modifier = fieldWidth
                 )
-
                 Spacer(Modifier.height(12.dp))
 
                 GlassOutlinedField(
@@ -111,16 +125,23 @@ fun RegisterScreen(
                 Spacer(Modifier.height(22.dp))
 
                 Button(
-                    onClick = onRegistered,
+                    onClick = { vm.signup(name, email, pass) },
+                    enabled = !ui.loading && name.isNotBlank() && email.isNotBlank() && pass.length >= 6,
                     modifier = fieldWidth.height(50.dp),
                     shape = RoundedCornerShape(16.dp),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = Color.White,
-                        contentColor = BlueDark
+                        contentColor = BlueDark,
+                        disabledContainerColor = Color.White.copy(alpha = 0.5f),
+                        disabledContentColor = BlueDark.copy(alpha = 0.5f)
                     ),
                     elevation = ButtonDefaults.buttonElevation(defaultElevation = 0.dp)
                 ) {
-                    Text("Crear cuenta", fontWeight = FontWeight.Bold)
+                    if (ui.loading) {
+                        CircularProgressIndicator(strokeWidth = 2.dp, color = BlueDark)
+                    } else {
+                        Text("Crear cuenta", fontWeight = FontWeight.Bold)
+                    }
                 }
 
                 Spacer(Modifier.height(12.dp))

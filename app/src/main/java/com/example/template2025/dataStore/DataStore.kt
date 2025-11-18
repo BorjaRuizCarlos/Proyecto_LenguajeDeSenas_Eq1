@@ -1,27 +1,23 @@
+// app/src/main/java/com/example/template2025/dataStore/DataStore.kt
 package com.example.template2025.dataStore
 
 import android.content.Context
-import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
-private const val DATASTORE_NAME = "app_prefs"
-val Context.dataStore by preferencesDataStore(name = DATASTORE_NAME)
+// ÚNICA extensión llamada dataStore
+val Context.dataStore by preferencesDataStore(name = "app_prefs")
 
-object PrefsKeys { val IS_LOGGED_IN = booleanPreferencesKey("is_logged_in") }
+object DataStore {
+    private val KEY_LOGGED = booleanPreferencesKey("logged_in")
 
-class AppDataStore(private val context: Context) {
-    val isLoggedInFlow: Flow<Boolean> =
-        context.dataStore.data.map { prefs: Preferences ->
-            prefs[PrefsKeys.IS_LOGGED_IN] ?: false
-        }
+    fun isLoggedIn(context: Context): Flow<Boolean> =
+        context.dataStore.data.map { it[KEY_LOGGED] ?: false }
 
-    suspend fun setLoggedIn(value: Boolean) {
-        context.dataStore.edit { prefs ->
-            prefs[PrefsKeys.IS_LOGGED_IN] = value
-        }
+    suspend fun setLoggedIn(context: Context, value: Boolean) {
+        context.dataStore.edit { it[KEY_LOGGED] = value }
     }
 }
