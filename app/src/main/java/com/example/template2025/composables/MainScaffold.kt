@@ -31,13 +31,15 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.example.template2025.R
 import com.example.template2025.navigation.Route
-import com.example.template2025.screens.DailyQuestsScreen
+import com.example.template2025.screens.MisionesDiariasScreen
 import com.example.template2025.screens.HomeScreen
 import com.example.template2025.screens.ModulesScreen
-
+import com.example.template2025.screens.AbecedarioScreen
 import com.example.template2025.screens.ProfileScreen
 import com.example.template2025.screens.SettingsScreen
+import com.example.template2025.ui.theme.MissionUi
 import com.example.template2025.ui.theme.Template2025Theme
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -78,6 +80,8 @@ fun MainScaffold(onLogoutClick: () -> Unit, onNavigateToAuth: () -> Unit) {
                         DrawerItem(nav, "Home", Route.Home.route, drawerState, scope)
                         DrawerItem(nav, "Módulos", Route.Modules.route, drawerState, scope)
                         DrawerItem(nav, "Misiones Diarias", Route.DailyQuests.route, drawerState, scope)
+                        DrawerItem(nav, "Diccionario", Route.Abecedario.route, drawerState, scope)
+
                         DrawerItem(nav, "Mi Cuenta", Route.Profile.route, drawerState, scope)
                         NavigationDrawerItem(
                             label = {
@@ -150,7 +154,19 @@ fun MainScaffold(onLogoutClick: () -> Unit, onNavigateToAuth: () -> Unit) {
                 composable(Route.Profile.route)  { ProfileScreen() }
                 composable(Route.Settings.route) { SettingsScreen() }
                 composable(Route.Modules.route) { ModulesScreen(navController = nav) } // Corregido
-                composable(Route.DailyQuests.route) { DailyQuestsScreen() }
+                composable(Route.Abecedario.route) { AbecedarioScreen(
+                    letter = "B",
+                    mainImage = R.drawable.btn_abecedario_continuar,
+                    onPrev = {},
+                    onNext = {},
+                    modifier = Modifier.padding()
+                ) }
+                composable(Route.DailyQuests.route) { MisionesDiariasScreen(
+                    missions = listOf(
+                    MissionUi("Gana 50 XP", 43, 50, com.example.template2025.R.drawable.ic_mision_xp),
+                    MissionUi("Completa 2 lecciones", 1, 2, com.example.template2025.R.drawable.ic_mision_lecciones),
+                    MissionUi("Termina un modulo", 43, 50, R.drawable.ic_mision_modulo)
+                )) }
             }
         }
     }

@@ -20,4 +20,5 @@ sealed class Route(val route: String) {
         fun createRoute(moduleId: Int) = "inside_module/$moduleId"
     }
     data object DailyQuests : Route("dailyquests")
+    data object Abecedario : Route(route = "abecedario")
 }
