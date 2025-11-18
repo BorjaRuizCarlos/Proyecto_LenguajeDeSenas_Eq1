@@ -49,7 +49,7 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
-
+@Preview
 @Composable
 fun AppRoot(modifier: Modifier = Modifier) {
 

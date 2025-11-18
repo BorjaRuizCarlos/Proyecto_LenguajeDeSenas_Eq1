@@ -54,24 +54,20 @@ fun MainScaffold(onLogoutClick: () -> Unit, onNavigateToAuth: () -> Unit) {
     ModalNavigationDrawer(
         drawerState = drawerState,
         drawerContent = {
-
-            // ... código anterior ...
             ModalDrawerSheet(
                 modifier = Modifier
                     .width(250.dp)
-                    .fillMaxHeight()
+                    .fillMaxHeight(0.5f)
                     .background(Color(0xFF21409A)),
                 drawerContainerColor = Color(0xFF21409A),
             ) {
-                // 1. REEMPLAZA EL BOX POR UN COLUMN
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(top = 50.dp, bottom = 16.dp), // Añade padding inferior
-                    horizontalAlignment = Alignment.CenterHorizontally, // Centra horizontalmente los elementos
-                    verticalArrangement = Arrangement.SpaceBetween // ⬅️ IMPORTANTE: Esto empuja el último elemento al final
+                        .padding(top = 50.dp, bottom = 16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.SpaceBetween
                 ) {
-                    // 2. Columna para los ítems de navegación superiores
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         DrawerItem(nav, "Home", Route.Home.route, drawerState, scope)
                         DrawerItem(nav, "Módulos", Route.Modules.route, drawerState, scope)
