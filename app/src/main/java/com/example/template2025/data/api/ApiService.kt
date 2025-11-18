@@ -12,22 +12,16 @@ interface ApiService {
     @POST("auth/signup")
     suspend fun signup(@Body body: SignupRequest): Response<SignupResponse>
 
-    companion object {
-        // 👉 Emulador Android → backend en tu Mac
-        private const val DEFAULT_BASE_URL = "http://10.0.2.2:8000/"
-        // Si usas dispositivo físico, cambia por la IP de tu Mac, ej:
-        // private const val DEFAULT_BASE_URL = "http://192.168.1.8:8000/"
+    @POST("auth/login")
+    suspend fun login(@Body body: LoginRequest): Response<LoginResponse>
 
-        fun create(baseUrl: String = DEFAULT_BASE_URL): ApiService {
-            val logging = HttpLoggingInterceptor().apply {
-                level = HttpLoggingInterceptor.Level.BODY
-            }
-            val client = OkHttpClient.Builder()
-                .addInterceptor(logging)
-                .build()
+    companion object {
+        fun create(baseUrl: String): ApiService {
+            val logging = HttpLoggingInterceptor().apply { level = HttpLoggingInterceptor.Level.BODY }
+            val client = OkHttpClient.Builder().addInterceptor(logging).build()
 
             return Retrofit.Builder()
-                .baseUrl(baseUrl)
+                .baseUrl(baseUrl) // ej. http://10.0.2.2:8000/
                 .addConverterFactory(GsonConverterFactory.create())
                 .client(client)
                 .build()

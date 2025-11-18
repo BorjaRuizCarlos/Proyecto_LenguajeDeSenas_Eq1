@@ -96,10 +96,11 @@ fun AuthNavHost(onLoggedIn: () -> Unit) {
     NavHost(navController = nav, startDestination = Route.Login.route) {
         composable(Route.Login.route) {
             LoginScreen(
-                onLogin = { onLoggedIn() },
+                onLoginOk = { onLoggedIn() },                  // ← renombrado
                 onGoToRegister = { nav.navigate(Route.Register.route) }
             )
         }
+
         composable(Route.Register.route) {
             RegisterScreen(
                 onRegistered = { onLoggedIn() },
@@ -107,6 +108,7 @@ fun AuthNavHost(onLoggedIn: () -> Unit) {
             )
         }
     }
+
 }
 
 @Composable

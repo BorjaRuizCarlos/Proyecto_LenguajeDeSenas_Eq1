@@ -1,8 +1,7 @@
-@file:OptIn(ExperimentalMaterial3Api::class)
+@file:OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
 
 package com.example.template2025.screens
 
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -27,132 +26,87 @@ import com.example.template2025.viewModel.AuthViewModel
 @Composable
 fun RegisterScreen(
     onRegistered: () -> Unit,
-    onBackToLogin: () -> Unit
+    onBackToLogin: () -> Unit,
+    vm: AuthViewModel = viewModel()
 ) {
-    val vm: AuthViewModel = viewModel()
-    val ui by vm.signup.collectAsState()
-
     var name by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var pass by remember { mutableStateOf("") }
 
-    val fieldWidth = Modifier
-        .fillMaxWidth(0.86f)
-        .widthIn(max = 420.dp)
+    val signup by vm.signup.collectAsState()
+    val snack = remember { SnackbarHostState() }
 
-    val snackbarHostState = remember { SnackbarHostState() }
+    LaunchedEffect(signup.success) { if (signup.success) { snack.showSnackbar("Cuenta creada ✅"); vm.resetSignup(); onRegistered() } }
+    LaunchedEffect(signup.error) { signup.error?.let { snack.showSnackbar(it); vm.resetSignup() } }
 
-    // Navega cuando se registre ok
-    LaunchedEffect(ui.success) {
-        if (ui.success) {
-            onRegistered()
-            vm.resetSignup()
-        }
-    }
-    // Muestra errores
-    LaunchedEffect(ui.error) {
-        ui.error?.let { snackbarHostState.showSnackbar(it) }
-    }
+    val fieldWidth = Modifier.fillMaxWidth(0.86f).widthIn(max = 420.dp)
 
     Scaffold(
         topBar = {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(44.dp)
-                    .background(BlueLight)
-            )
+            Box(Modifier.fillMaxWidth().height(44.dp).background(BlueLight))
         },
-        snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
+        snackbarHost = { SnackbarHost(snack) }
     ) { padding ->
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(BlueDark)
-                .padding(padding)
-        ) {
+        Box(Modifier.fillMaxSize().background(BlueDark).padding(padding)) {
             SillaDeRuedas(
                 resId = R.drawable.hearing_aid,
-                size = 750.dp,
-                alpha = 0.20f,
+                size = 750.dp, alpha = 0.20f,
                 alignment = Alignment.BottomStart,
-                rotation = 0f,
-                offsetX = 0.dp,
-                offsetY = 370.dp
+                rotation = 0f, offsetX = 0.dp, offsetY = 370.dp
             )
 
             Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(horizontal = 20.dp),
+                Modifier.fillMaxSize().padding(horizontal = 20.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Spacer(Modifier.height(28.dp))
-
-                Text(
-                    text = "Cuenta Nueva",
-                    color = Color.White,
-                    fontSize = 32.sp,
-                    fontWeight = FontWeight.ExtraBold
-                )
-
+                Text("Cuenta Nueva", color = Color.White, fontSize = 32.sp, fontWeight = FontWeight.ExtraBold)
                 Spacer(Modifier.height(24.dp))
 
+                // Nombre
                 GlassOutlinedField(
                     value = name,
                     onValueChange = { name = it },
-                    placeholder = "Nombre completo",
-                    modifier = fieldWidth
+                    modifier = fieldWidth,
+                    placeholder = "Nombre completo"
                 )
+
                 Spacer(Modifier.height(12.dp))
 
+// Correo
                 GlassOutlinedField(
                     value = email,
                     onValueChange = { email = it },
-                    placeholder = "Correo",
-                    modifier = fieldWidth
+                    modifier = fieldWidth,
+                    placeholder = "Correo"
                 )
+
                 Spacer(Modifier.height(12.dp))
 
+// Contraseña
                 GlassOutlinedField(
                     value = pass,
                     onValueChange = { pass = it },
+                    modifier = fieldWidth,
                     placeholder = "Contraseña",
-                    visualTransformation = PasswordVisualTransformation(),
-                    modifier = fieldWidth
+                    visualTransformation = PasswordVisualTransformation()
                 )
 
-                Spacer(Modifier.height(22.dp))
 
                 Button(
                     onClick = { vm.signup(name, email, pass) },
-                    enabled = !ui.loading && name.isNotBlank() && email.isNotBlank() && pass.length >= 6,
+                    enabled = !signup.loading,
                     modifier = fieldWidth.height(50.dp),
                     shape = RoundedCornerShape(16.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color.White,
-                        contentColor = BlueDark,
-                        disabledContainerColor = Color.White.copy(alpha = 0.5f),
-                        disabledContentColor = BlueDark.copy(alpha = 0.5f)
-                    ),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color.White, contentColor = BlueDark),
                     elevation = ButtonDefaults.buttonElevation(defaultElevation = 0.dp)
                 ) {
-                    if (ui.loading) {
-                        CircularProgressIndicator(strokeWidth = 2.dp, color = BlueDark)
-                    } else {
-                        Text("Crear cuenta", fontWeight = FontWeight.Bold)
-                    }
+                    Text(if (signup.loading) "Creando..." else "Crear cuenta", fontWeight = FontWeight.Bold)
                 }
 
                 Spacer(Modifier.height(12.dp))
-
                 TextButton(onClick = onBackToLogin) {
-                    Text(
-                        "¿Ya tienes cuenta? Inicia sesión",
-                        color = BlueLight,
-                        fontWeight = FontWeight.SemiBold,
-                        textDecoration = TextDecoration.Underline
-                    )
+                    Text("¿Ya tienes cuenta? Inicia sesión", color = BlueLight, fontWeight = FontWeight.SemiBold, textDecoration = TextDecoration.Underline)
                 }
             }
         }
