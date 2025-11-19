@@ -17,7 +17,7 @@ data class UiState(
 class AuthViewModel : ViewModel() {
 
     // Ajusta aquí tu base URL local:
-    private val api = ApiService.create("http://10.0.2.2:8000/")
+    private val api = ApiService.create("https://androidbackend-production-1dbe.up.railway.app/")
     private val repo = AuthRepository(api)
 
     private val _signup = MutableStateFlow(UiState())
