@@ -4,6 +4,8 @@ package com.example.template2025.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -36,34 +38,56 @@ fun RegisterScreen(
     val signup by vm.signup.collectAsState()
     val snack = remember { SnackbarHostState() }
 
-    LaunchedEffect(signup.success) { if (signup.success) { snack.showSnackbar("Cuenta creada ✅"); vm.resetSignup(); onRegistered() } }
-    LaunchedEffect(signup.error) { signup.error?.let { snack.showSnackbar(it); vm.resetSignup() } }
+    LaunchedEffect(signup.success) {
+        if (signup.success) {
+            snack.showSnackbar("Cuenta creada ✅")
+            vm.resetSignup()
+            onRegistered()
+        }
+    }
+    LaunchedEffect(signup.error) {
+        signup.error?.let { snack.showSnackbar(it); vm.resetSignup() }
+    }
 
     val fieldWidth = Modifier.fillMaxWidth(0.86f).widthIn(max = 420.dp)
 
     Scaffold(
-        topBar = {
-            Box(Modifier.fillMaxWidth().height(44.dp).background(BlueLight))
-        },
+        topBar = { Box(Modifier.fillMaxWidth().height(55.dp).background(BlueLight)) },
         snackbarHost = { SnackbarHost(snack) }
     ) { padding ->
-        Box(Modifier.fillMaxSize().background(BlueDark).padding(padding)) {
+        Box(
+            Modifier
+                .fillMaxSize()
+                .background(BlueDark)
+        ) {
             SillaDeRuedas(
                 resId = R.drawable.hearing_aid,
-                size = 750.dp, alpha = 0.20f,
+                size = 750.dp,
+                alpha = 0.20f,
                 alignment = Alignment.BottomStart,
-                rotation = 0f, offsetX = 0.dp, offsetY = 370.dp
+                rotation = 0f,
+                offsetX = 0.dp,
+                offsetY = 355.dp
             )
 
             Column(
-                Modifier.fillMaxSize().padding(horizontal = 20.dp),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding) // del Scaffold
+                    .padding(start = 20.dp, top = 55.dp, end = 20.dp, bottom = 32.dp)
+                    .verticalScroll(rememberScrollState())
+                    .imePadding(),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Spacer(Modifier.height(28.dp))
-                Text("Cuenta Nueva", color = Color.White, fontSize = 32.sp, fontWeight = FontWeight.ExtraBold)
-                Spacer(Modifier.height(24.dp))
+                Text(
+                    text = "Cuenta Nueva",
+                    color = Color.White,
+                    fontSize = 32.sp,
+                    fontWeight = FontWeight.ExtraBold
+                )
 
-                // Nombre
+                Spacer(Modifier.height(35.dp))
+
                 GlassOutlinedField(
                     value = name,
                     onValueChange = { name = it },
@@ -71,9 +95,8 @@ fun RegisterScreen(
                     placeholder = "Nombre completo"
                 )
 
-                Spacer(Modifier.height(12.dp))
+                Spacer(Modifier.height(25.dp))
 
-// Correo
                 GlassOutlinedField(
                     value = email,
                     onValueChange = { email = it },
@@ -81,9 +104,8 @@ fun RegisterScreen(
                     placeholder = "Correo"
                 )
 
-                Spacer(Modifier.height(12.dp))
+                Spacer(Modifier.height(25.dp))
 
-// Contraseña
                 GlassOutlinedField(
                     value = pass,
                     onValueChange = { pass = it },
@@ -92,23 +114,36 @@ fun RegisterScreen(
                     visualTransformation = PasswordVisualTransformation()
                 )
 
+                Spacer(Modifier.height(24.dp)) // separación extra
 
                 Button(
                     onClick = { vm.signup(name, email, pass) },
                     enabled = !signup.loading,
                     modifier = fieldWidth.height(50.dp),
-                    shape = RoundedCornerShape(16.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color.White, contentColor = BlueDark),
+                    shape = RoundedCornerShape(20.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color.White,
+                        contentColor = BlueDark
+                    ),
                     elevation = ButtonDefaults.buttonElevation(defaultElevation = 0.dp)
                 ) {
-                    Text(if (signup.loading) "Creando..." else "Crear cuenta", fontWeight = FontWeight.Bold)
+                    Text(
+                        if (signup.loading) "Creando..." else "Crear cuenta",
+                        fontWeight = FontWeight.Bold
+                    )
                 }
 
-                Spacer(Modifier.height(12.dp))
+                Spacer(Modifier.height(16.dp))
+
                 TextButton(onClick = onBackToLogin) {
-                    Text("¿Ya tienes cuenta? Inicia sesión", color = BlueLight, fontWeight = FontWeight.SemiBold, textDecoration = TextDecoration.Underline)
+                    Text(
+                        "¿Ya tienes cuenta? Inicia sesión",
+                        color = BlueLight,
+                        fontWeight = FontWeight.SemiBold,
+                        textDecoration = TextDecoration.Underline
+                    )
                 }
-            }
+            } //
         }
     }
 }

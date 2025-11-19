@@ -4,6 +4,8 @@ package com.example.template2025.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -35,19 +37,28 @@ fun LoginScreen(
     val login by vm.login.collectAsState()
     val snack = remember { SnackbarHostState() }
 
-    LaunchedEffect(login.success) { if (login.success) { snack.showSnackbar("Bienvenido 👋"); vm.resetLogin(); onLoginOk() } }
-    LaunchedEffect(login.error) { login.error?.let { snack.showSnackbar(it); vm.resetLogin() } }
+    LaunchedEffect(login.success) {
+        if (login.success) {
+            snack.showSnackbar("Bienvenido 👋")
+            vm.resetLogin()
+            onLoginOk()
+        }
+    }
+    LaunchedEffect(login.error) {
+        login.error?.let { snack.showSnackbar(it); vm.resetLogin() }
+    }
 
     val fieldWidth = Modifier.fillMaxWidth(0.86f).widthIn(max = 420.dp)
 
     Scaffold(
-        topBar = {
-            Box(Modifier.fillMaxWidth().height(90.dp).background(BlueDark)) // como lo tenías
-        },
+        topBar = { Box(Modifier.fillMaxWidth().height(60.dp).background(BlueDark)) },
         snackbarHost = { SnackbarHost(snack) }
     ) { padding ->
         Box(
-            modifier = Modifier.fillMaxSize().background(BlueLight).padding(padding)
+            modifier = Modifier
+                .fillMaxSize()
+                .background(BlueLight)
+                .padding(padding)
         ) {
             // Marca de agua
             SillaDeRuedas(
@@ -57,22 +68,29 @@ fun LoginScreen(
                 rotation = -15f, offsetX = 100.dp, offsetY = 10.dp
             )
 
+            // Contenido
             Column(
-                modifier = Modifier.fillMaxSize().padding(horizontal = 20.dp),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(start = 20.dp, top = 45.dp, end = 20.dp, bottom = 32.dp)
+                    .verticalScroll(rememberScrollState())
+                    .imePadding(),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Spacer(Modifier.height(28.dp))
                 Text("INCLUSIÓN", color = BlueDark, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                 Spacer(Modifier.height(10.dp))
-                Text("Iniciar sesión", color = BlueDark, fontSize = 34.sp, fontWeight = FontWeight.ExtraBold, lineHeight = 36.sp)
+                Text("Iniciar sesión",
+                    color = BlueDark, fontSize = 34.sp,
+                    fontWeight = FontWeight.ExtraBold, lineHeight = 36.sp
+                )
                 Spacer(Modifier.height(28.dp))
 
                 // Email / usuario
                 GlassOutlinedField(
                     value = email,
                     onValueChange = { email = it },
-                    modifier = fieldWidth,                      // <-- Modifier aquí
-                    placeholder = "correo / nombre de usuario" // <-- placeholder aquí
+                    modifier = fieldWidth,
+                    placeholder = "Correo"
                 )
 
                 Spacer(Modifier.height(14.dp))
@@ -82,32 +100,45 @@ fun LoginScreen(
                     value = pass,
                     onValueChange = { pass = it },
                     modifier = fieldWidth,
-                    placeholder = "contraseña",
+                    placeholder = "Contraseña",
                     visualTransformation = PasswordVisualTransformation()
                 )
 
                 Spacer(Modifier.height(24.dp))
-                // En tu Button (solo ajusté trim y mantuve tu estado de enabled)
+
                 Button(
                     onClick = { vm.login(email.trim(), pass) },
                     enabled = !login.loading,
                     modifier = Modifier.fillMaxWidth(0.7f).height(50.dp),
                     shape = RoundedCornerShape(16.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color.White, contentColor = BlueDark),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color.White,
+                        contentColor = BlueDark
+                    ),
                     elevation = ButtonDefaults.buttonElevation(defaultElevation = 0.dp)
-                )
-                {
+                ) {
                     Text(if (login.loading) "Entrando…" else "Inicia sesión", fontWeight = FontWeight.Bold)
                 }
 
                 Spacer(Modifier.height(18.dp))
-                OutlinedButton(onClick = { /* TODO Google Sign-In */ }, modifier = Modifier.height(44.dp), shape = RoundedCornerShape(12.dp)) {
+
+                OutlinedButton(
+                    onClick = { /* TODO: Google Sign-In */ },
+                    modifier = Modifier.height(44.dp),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
                     Text("Continuar con Google")
                 }
 
                 Spacer(Modifier.height(18.dp))
+
                 TextButton(onClick = onGoToRegister) {
-                    Text("¿No tienes cuenta? Regístrate!", color = BlueDark, fontWeight = FontWeight.SemiBold, textDecoration = TextDecoration.Underline)
+                    Text(
+                        "¿No tienes cuenta? Regístrate!",
+                        color = BlueDark,
+                        fontWeight = FontWeight.SemiBold,
+                        textDecoration = TextDecoration.Underline
+                    )
                 }
             }
         }
