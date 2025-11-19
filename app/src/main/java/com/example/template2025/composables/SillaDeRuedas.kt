@@ -19,7 +19,7 @@ import com.example.template2025.R
  */
 @Composable
 fun BoxScope.SillaDeRuedas(
-    resId: Int = R.drawable.ruedas, // pon tu imagen en res/drawable/mascota.png
+    resId: Int = R.drawable.ruedas, // imagen en res/drawable/ruedas.png
     size: Dp = 120.dp,
     alpha: Float = 0.18f,
     alignment: Alignment = Alignment.BottomEnd,

@@ -1,8 +1,7 @@
-@file:OptIn(ExperimentalMaterial3Api::class)
+@file:OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
 
 package com.example.template2025.screens
 
-import androidx.compose.material3.ExperimentalMaterial3Api   // <-- este import va aquí
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -16,133 +15,99 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.template2025.composables.SillaDeRuedas
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.template2025.composables.GlassOutlinedField
+import com.example.template2025.composables.SillaDeRuedas
 import com.example.template2025.ui.theme.BlueDark
 import com.example.template2025.ui.theme.BlueLight
+import com.example.template2025.R
+import com.example.template2025.viewModel.AuthViewModel
 
 @Composable
 fun LoginScreen(
-    onLogin: () -> Unit,
-    onGoToRegister: () -> Unit
+    onLoginOk: () -> Unit,
+    onGoToRegister: () -> Unit,
+    vm: AuthViewModel = viewModel()
 ) {
     var email by remember { mutableStateOf("") }
     var pass by remember { mutableStateOf("") }
 
-    val fieldWidth = Modifier
-        .fillMaxWidth(0.86f)   // 86% del ancho
-        .widthIn(max = 420.dp) // tope máximo
+    val login by vm.login.collectAsState()
+    val snack = remember { SnackbarHostState() }
+
+    LaunchedEffect(login.success) { if (login.success) { snack.showSnackbar("Bienvenido 👋"); vm.resetLogin(); onLoginOk() } }
+    LaunchedEffect(login.error) { login.error?.let { snack.showSnackbar(it); vm.resetLogin() } }
+
+    val fieldWidth = Modifier.fillMaxWidth(0.86f).widthIn(max = 420.dp)
 
     Scaffold(
         topBar = {
-            // Barra azul de arriba sin funcionalidad (como la tenías)
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(90.dp)
-                    .background(BlueDark)
-            )
-        }
+            Box(Modifier.fillMaxWidth().height(90.dp).background(BlueDark)) // como lo tenías
+        },
+        snackbarHost = { SnackbarHost(snack) }
     ) { padding ->
         Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(BlueLight) // #dcedfc
-                .padding(padding)
+            modifier = Modifier.fillMaxSize().background(BlueLight).padding(padding)
         ) {
-
-            // Mascota en marca de agua
+            // Marca de agua
             SillaDeRuedas(
-                size = 350.dp,
-                alpha = 0.25f,
+                resId = R.drawable.ruedas,
+                size = 350.dp, alpha = 0.25f,
                 alignment = Alignment.BottomEnd,
-                rotation = -15f,
-                offsetX = (100).dp,
-                offsetY = (10).dp
+                rotation = -15f, offsetX = 100.dp, offsetY = 10.dp
             )
 
             Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(horizontal = 20.dp),
+                modifier = Modifier.fillMaxSize().padding(horizontal = 20.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Spacer(Modifier.height(28.dp))
-
-                Text(
-                    text = "INCLUSIÓN",
-                    color = BlueDark,
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Bold
-                )
-
+                Text("INCLUSIÓN", color = BlueDark, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                 Spacer(Modifier.height(10.dp))
-
-                Text(
-                    text = "Iniciar sesión",
-                    color = BlueDark,
-                    fontSize = 34.sp,
-                    fontWeight = FontWeight.ExtraBold,
-                    lineHeight = 36.sp
-                )
-
+                Text("Iniciar sesión", color = BlueDark, fontSize = 34.sp, fontWeight = FontWeight.ExtraBold, lineHeight = 36.sp)
                 Spacer(Modifier.height(28.dp))
 
-                // INPUT 1: estilo glass
+                // Email / usuario
                 GlassOutlinedField(
                     value = email,
                     onValueChange = { email = it },
-                    placeholder = "correo / nombre de usuario",
-                    modifier = fieldWidth
+                    modifier = fieldWidth,                      // <-- Modifier aquí
+                    placeholder = "correo / nombre de usuario" // <-- placeholder aquí
                 )
 
                 Spacer(Modifier.height(14.dp))
 
-                // INPUT 2: estilo glass
+                // Contraseña
                 GlassOutlinedField(
                     value = pass,
                     onValueChange = { pass = it },
+                    modifier = fieldWidth,
                     placeholder = "contraseña",
-                    visualTransformation = PasswordVisualTransformation(),
-                    modifier = fieldWidth
+                    visualTransformation = PasswordVisualTransformation()
                 )
 
                 Spacer(Modifier.height(24.dp))
-
+                // En tu Button (solo ajusté trim y mantuve tu estado de enabled)
                 Button(
-                    onClick = onLogin,
-                    modifier = Modifier
-                        .fillMaxWidth(0.7f)
-                        .height(50.dp),
+                    onClick = { vm.login(email.trim(), pass) },
+                    enabled = !login.loading,
+                    modifier = Modifier.fillMaxWidth(0.7f).height(50.dp),
                     shape = RoundedCornerShape(16.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color.White,
-                        contentColor = BlueDark
-                    ),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color.White, contentColor = BlueDark),
                     elevation = ButtonDefaults.buttonElevation(defaultElevation = 0.dp)
-                ) {
-                    Text("Inicia sesión", fontWeight = FontWeight.Bold)
+                )
+                {
+                    Text(if (login.loading) "Entrando…" else "Inicia sesión", fontWeight = FontWeight.Bold)
                 }
 
                 Spacer(Modifier.height(18.dp))
-
-                OutlinedButton(
-                    onClick = { /* TODO: Google Sign-In */ },
-                    modifier = Modifier.height(44.dp),
-                    shape = RoundedCornerShape(12.dp)
-                ) {
+                OutlinedButton(onClick = { /* TODO Google Sign-In */ }, modifier = Modifier.height(44.dp), shape = RoundedCornerShape(12.dp)) {
                     Text("Continuar con Google")
                 }
 
                 Spacer(Modifier.height(18.dp))
-
                 TextButton(onClick = onGoToRegister) {
-                    Text(
-                        "¿No tienes cuenta? Regístrate!",
-                        color = BlueDark,
-                        fontWeight = FontWeight.SemiBold,
-                        textDecoration = TextDecoration.Underline
-                    )
+                    Text("¿No tienes cuenta? Regístrate!", color = BlueDark, fontWeight = FontWeight.SemiBold, textDecoration = TextDecoration.Underline)
                 }
             }
         }
