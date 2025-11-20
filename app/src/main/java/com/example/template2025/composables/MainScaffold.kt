@@ -35,6 +35,9 @@ import com.example.template2025.screens.*
 import com.example.template2025.ui.theme.MissionUi
 import com.example.template2025.ui.theme.Template2025Theme
 import kotlinx.coroutines.launch
+import androidx.navigation.NavType
+import androidx.navigation.navArgument
+import com.example.template2025.screens.InsideModulesScreen
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -137,6 +140,18 @@ fun MainScaffold(
                             MissionUi("Termina un modulo", 43, 50, R.drawable.ic_mision_modulo)
                         )
                     )
+                }
+                //Ruta para InsideModulesScreen
+                composable(
+                    route = Route.InsideModule.route, // La ruta base: "inside_module/{moduleId}"
+                    arguments = listOf(navArgument("moduleId") { type = NavType.IntType })
+                ) { backStackEntry ->
+
+                    //Obtencion del ID del módulo de los argumentos de la ruta
+                    val moduleId = backStackEntry.arguments?.getInt("moduleId")
+
+                    //Llamamos a la pantalla de detalle, pasándole el ID que obtuvimos
+                    InsideModulesScreen(navController = nav, moduleId = moduleId)
                 }
             }
         }
