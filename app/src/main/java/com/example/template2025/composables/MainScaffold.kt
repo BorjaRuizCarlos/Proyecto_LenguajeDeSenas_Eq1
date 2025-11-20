@@ -1,6 +1,7 @@
 package com.example.template2025.composables
 
 import androidx.compose.foundation.background
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.indication
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -34,7 +35,6 @@ import com.example.template2025.ui.theme.MissionUi
 import com.example.template2025.ui.theme.Template2025Theme
 import kotlinx.coroutines.launch
 
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScaffold(
@@ -50,7 +50,7 @@ fun MainScaffold(
         drawerContent = {
             ModalDrawerSheet(
                 modifier = Modifier
-                    .width(260.dp) // Modificador limpiado
+                    .width(260.dp)
                     .fillMaxHeight()
                     .background(Color(0xFF21409A)),
                 drawerContainerColor = Color(0xFF21409A),
@@ -113,9 +113,13 @@ fun MainScaffold(
                 )
             }
         ) { innerPadding ->
-            NavHost(navController = nav, startDestination = Route.Home.route, modifier = Modifier.padding(innerPadding)) {
-                composable(Route.Home.route)     { HomeScreen(navController = nav) }
-                composable(Route.Profile.route)  { ProfileScreen() }
+            NavHost(
+                navController = nav,
+                startDestination = Route.Home.route,
+                modifier = Modifier.padding(innerPadding)
+            ) {
+                composable(Route.Home.route) { HomeScreen(navController = nav) }
+                composable(Route.Profile.route) { ProfileScreen() }
                 composable(Route.Settings.route) { SettingsScreen() }
                 composable(Route.Modules.route) { ModulesScreen(navController = nav) }
                 composable(Route.Abecedario.route) {
@@ -136,13 +140,6 @@ fun MainScaffold(
                         ),
                         modifier = Modifier.padding(innerPadding) // Padding corregido
                     )
-                }
-                composable(
-                    route = Route.InsideModule.route,
-                    arguments = listOf(navArgument("moduleId") { type = NavType.IntType })
-                ) { backStackEntry ->
-                    val moduleId = backStackEntry.arguments?.getInt("moduleId")
-                    InsideModulesScreen(navController = nav, moduleId = moduleId)
                 }
             }
         }
