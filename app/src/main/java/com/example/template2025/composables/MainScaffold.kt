@@ -7,28 +7,27 @@ import androidx.compose.foundation.indication
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.Logout
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.ripple.rememberRipple
-import androidx.compose.material3.ripple
 import androidx.compose.material3.*
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.example.template2025.R
 import com.example.template2025.navigation.Route
 import com.example.template2025.screens.*
@@ -56,13 +55,15 @@ fun MainScaffold(
                     .background(Color(0xFF21409A)),
                 drawerContainerColor = Color(0xFF21409A),
             ) {
+                // Columna principal que organiza el contenido del menú
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(top = 40.dp, bottom = 12.dp),
                     horizontalAlignment = Alignment.Start,
-                    verticalArrangement = Arrangement.SpaceBetween
+                    verticalArrangement = Arrangement.SpaceBetween // Esto empuja el logout al fondo
                 ) {
+                    // Columna para los items de navegación principales
                     Column {
                         DrawerTextItem("Home", Icons.Filled.Home) {
                             nav.navigate(Route.Home.route)
@@ -85,9 +86,10 @@ fun MainScaffold(
                             scope.launch { drawerState.close() }
                         }
                     }
+                    // Botón de cerrar sesión, separado del resto
                     DrawerTextItem(
                         label = "Cerrar sesión",
-                        icon = Icons.Outlined.Logout, // pon tu ícono de logout si quieres
+                        icon = Icons.Outlined.Logout,
                         bold = true
                     ) {
                         scope.launch { drawerState.close() }
@@ -126,7 +128,7 @@ fun MainScaffold(
                         mainImage = R.drawable.btn_abecedario_continuar,
                         onPrev = {},
                         onNext = {},
-                        modifier = Modifier.padding()
+                        modifier = Modifier.padding(innerPadding) // Padding corregido
                     )
                 }
                 composable(Route.DailyQuests.route) {
@@ -135,18 +137,13 @@ fun MainScaffold(
                             MissionUi("Gana 50 XP", 43, 50, R.drawable.ic_mision_xp),
                             MissionUi("Completa 2 lecciones", 1, 2, R.drawable.ic_mision_lecciones),
                             MissionUi("Termina un modulo", 43, 50, R.drawable.ic_mision_modulo)
-                        )
+                        ),
+                        modifier = Modifier.padding(innerPadding) // Padding corregido
                     )
                 }
             }
         }
     }
-}
-
-@Composable
-private fun currentRoute(nav: NavHostController): String? {
-    val backStackEntry by nav.currentBackStackEntryAsState()
-    return backStackEntry?.destination?.route
 }
 
 @Composable
@@ -167,12 +164,10 @@ fun DrawerTextItem(
         modifier = Modifier
             .fillMaxWidth()
             .background(bg)
-            // clickable sin ripple interno…
             .clickable(
                 interactionSource = interaction,
                 indication = null
             ) { onClick() }
-            // …y agregamos la nueva API de indication para el ripple
             .indication(
                 interactionSource = interaction,
                 indication = ripple(
@@ -185,7 +180,7 @@ fun DrawerTextItem(
         Row(verticalAlignment = Alignment.CenterVertically) {
             Icon(icon, contentDescription = null, tint = textColor)
             Spacer(Modifier.width(14.dp))
-            Text(label, color = textColor, style = MaterialTheme.typography.bodyLarge)
+            Text(label, color = textColor, style = MaterialTheme.typography.bodyLarge, fontWeight = if (bold) FontWeight.Bold else FontWeight.Normal)
         }
         HorizontalDivider(
             modifier = Modifier
