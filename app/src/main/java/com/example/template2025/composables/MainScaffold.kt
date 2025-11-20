@@ -1,16 +1,6 @@
 package com.example.template2025.composables
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.indication
@@ -45,13 +35,6 @@ import com.example.template2025.screens.*
 import com.example.template2025.ui.theme.MissionUi
 import com.example.template2025.ui.theme.Template2025Theme
 import kotlinx.coroutines.launch
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Menu
-import androidx.navigation.NavType
-import androidx.navigation.navArgument
-import com.example.template2025.screens.InsideModulesScreen
-data class BottomItem(val route: String, val label: String, val icon: ImageVector)
-
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -68,8 +51,6 @@ fun MainScaffold(
         drawerContent = {
             ModalDrawerSheet(
                 modifier = Modifier
-                    .width(250.dp)
-                    .fillMaxHeight(0.5f)
                     .width(260.dp)
                     .fillMaxHeight()
                     .background(Color(0xFF21409A)),
@@ -78,54 +59,6 @@ fun MainScaffold(
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(top = 50.dp, bottom = 16.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        DrawerItem(nav, "Home", Route.Home.route, drawerState, scope)
-                        DrawerItem(nav, "Módulos", Route.Modules.route, drawerState, scope)
-                        DrawerItem(nav, "Misiones Diarias", Route.DailyQuests.route, drawerState, scope)
-                        DrawerItem(nav, "Mi Cuenta", Route.Profile.route, drawerState, scope)
-                        NavigationDrawerItem(
-                            label = {
-
-                                Box(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Text(
-                                        text = "Cerrar sesión",
-                                        color = Color.White,
-                                        textAlign = TextAlign.Center
-                                    )
-                                }
-                            },
-
-                            selected = false,
-                            onClick = {
-                                scope.launch { drawerState.close() }
-                                onLogoutClick()
-                                onNavigateToAuth()
-                            },
-                            modifier = Modifier
-                                .fillMaxWidth(0.8f)
-                                .padding(vertical = 14.dp)
-                                .background(
-                                    color = Color(0xFF8BA7D7),
-                                    shape = RoundedCornerShape(20.dp)
-                                )
-                                .height(46.dp),
-                            shape = RoundedCornerShape(20.dp),
-                            colors = NavigationDrawerItemDefaults.colors(
-                                selectedContainerColor = Color(0xFF8BA7D7),
-                                unselectedContainerColor = Color(0xFF8BA7D7),
-                                selectedTextColor = Color.White,
-                                unselectedTextColor = Color.White,
-                                selectedIconColor = Color.White,
-                                unselectedIconColor = Color.White
-                            )
-                        )
                         .padding(top = 40.dp, bottom = 12.dp),
                     horizontalAlignment = Alignment.Start,
                     verticalArrangement = Arrangement.SpaceBetween
@@ -168,7 +101,6 @@ fun MainScaffold(
         Scaffold(
             topBar = {
                 TopAppBar(
-
                     title = { Text("Template App", color = Color.White) },
                     navigationIcon = {
                         IconButton(onClick = { scope.launch { drawerState.open() } }) {
@@ -179,9 +111,13 @@ fun MainScaffold(
                 )
             }
         ) { innerPadding ->
-            NavHost(navController = nav, startDestination = Route.Home.route, modifier = Modifier.padding(innerPadding)) {
-                composable(Route.Home.route)     { HomeScreen(navController = nav) }
-                composable(Route.Profile.route)  { ProfileScreen() }
+            NavHost(
+                navController = nav,
+                startDestination = Route.Home.route,
+                modifier = Modifier.padding(innerPadding)
+            ) {
+                composable(Route.Home.route) { HomeScreen(navController = nav) }
+                composable(Route.Profile.route) { ProfileScreen() }
                 composable(Route.Settings.route) { SettingsScreen() }
                 composable(Route.Modules.route) { ModulesScreen(navController = nav) }
                 composable(Route.Abecedario.route) {
@@ -201,18 +137,6 @@ fun MainScaffold(
                             MissionUi("Termina un modulo", 43, 50, R.drawable.ic_mision_modulo)
                         )
                     )
-                }
-                //Ruta para InsideModulesScreen
-                composable(
-                    route = Route.InsideModule.route, // La ruta base: "inside_module/{moduleId}"
-                    arguments = listOf(navArgument("moduleId") { type = NavType.IntType })
-                ) { backStackEntry ->
-
-                    //Obtencion del ID del módulo de los argumentos de la ruta
-                    val moduleId = backStackEntry.arguments?.getInt("moduleId")
-
-                    //Llamamos a la pantalla de detalle, pasándole el ID que obtuvimos
-                    InsideModulesScreen(navController = nav, moduleId = moduleId)
                 }
             }
         }
