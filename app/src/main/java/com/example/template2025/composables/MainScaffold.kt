@@ -121,6 +121,7 @@ fun MainScaffold(onLogoutClick: () -> Unit, onNavigateToAuth: () -> Unit) {
         Scaffold(
             topBar = {
                 TopAppBar(
+
                     title = { Text("Template App", color = Color.White) },
                     navigationIcon = {
                         IconButton(onClick = { scope.launch { drawerState.open() } }) {
@@ -137,7 +138,7 @@ fun MainScaffold(onLogoutClick: () -> Unit, onNavigateToAuth: () -> Unit) {
 
         ) { innerPadding ->
             NavHost(navController = nav, startDestination = Route.Home.route, modifier = Modifier.padding(innerPadding)) {
-                composable(Route.Home.route)     { HomeScreen() }
+                composable(Route.Home.route)     { HomeScreen(navController = nav) }
                 composable(Route.Profile.route)  { ProfileScreen() }
                 composable(Route.Settings.route) { SettingsScreen() }
                 composable(Route.Modules.route) { ModulesScreen() }

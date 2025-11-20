@@ -22,6 +22,8 @@
     import androidx.compose.material3.Icon
     import androidx.compose.material3.MaterialTheme
     import androidx.compose.material3.Text
+    import androidx.compose.foundation.clickable
+    import androidx.compose.foundation.layout.offset
     // ... otras importaciones
     import androidx.compose.runtime.Composable
     import androidx.compose.ui.Alignment
@@ -33,6 +35,8 @@
     import androidx.compose.ui.tooling.preview.Preview
     import androidx.compose.ui.unit.dp
     import androidx.compose.ui.unit.sp
+    import androidx.navigation.NavController
+    import com.example.template2025.navigation.Route
 
 
     // ... otras importaciones
@@ -91,11 +95,23 @@
      */
     @Preview(showBackground = true)
     @Composable
-    fun HomeScreen() {
+    fun HomeScreenPreview() {
+        val appData = getFakeApiData()
+        // Una versión de preview simple sin navegación real
+        HomeScreenContent(appData = appData, onNavigateToDailyQuests = {})
+    }
+
+    @Composable
+    fun HomeScreen(navController: NavController) {
         val appData = getFakeApiData() // Aquí obtienes los datos harcodeados o de la API
 
         // Simplemente llamamos a la función de contenido
-        HomeScreenContent(appData = appData)
+        HomeScreenContent(
+            appData = appData,
+            onNavigateToDailyQuests = {
+                navController.navigate(Route.DailyQuests.route) // <--- Implementación de la navegación
+            }
+        )
     }
 
     @Composable
@@ -162,171 +178,216 @@
         }
     }
 
+    // ... (Asegúrate de incluir las definiciones de MissionProgressBar y ModuleProgressBar)
+    // @Composable fun ModuleProgressBar(...) // Debe estar definida aquí o en un archivo de utilidades
+    // @Composable fun MissionProgressBar(...) // Debe estar definida aquí o en un archivo de utilidades
+    // ... (Tus imports, data classes, y funciones MissionProgressBar, ModuleProgressBar permanecen iguales)
+
     @Composable
-    fun HomeScreenContent(appData: AppData) {
-        Column(
+    fun HomeScreenContent(
+        appData: AppData,
+        onNavigateToDailyQuests: () -> Unit // <--- Nuevo parámetro
+    ) {
+        // 1. Usar un Box para apilar el fondo (squibbles) y el contenido (Column)
+        Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color(0xB2CAF5FF)) // Un fondo suave como en tu imagen
-                .padding(16.dp)
+                .background(Color(0xB2CAF5FF)) // Fondo suave
         ) {
-            // Sección 1: Progreso Semanal
-            Text(
-                text = "¡Bienvenido de vuelta!",
-                color=  Color(0xFF244984),
-                fontSize = 24.sp,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(bottom = 16.dp)
-            )
 
-            Row(
+            // ===================================
+            // SQUIBBLES DE FONDO (Capas inferiores)
+            // ===================================
+            // Squibble 1 (La forma en la esquina inferior derecha)
+            Image(
+                painter = painterResource(id = R.drawable.squibble_1), // ¡Asegúrate de que este recurso exista!
+                contentDescription = null,
+                // Posicionarlo en la esquina inferior derecha o similar
                 modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .size(850.dp) // Tamaño ajustado
+                    .offset(x = 0.dp, y = 30.dp) // Empujarlo ligeramente fuera para el efecto de borde
+            )
+
+            // Squibble 2 (La forma en la esquina superior izquierda)
+            Image(
+                painter = painterResource(id = R.drawable.squibble_2), // ¡Asegúrate de que este recurso exista!
+                contentDescription = null,
+                // Posicionarlo en la esquina superior izquierda o similar
+                modifier = Modifier
+                    .align(Alignment.TopStart)
+                    .size(800.dp) // Tamaño ajustado
+                    .offset(x = (0).dp, y = (100).dp) // Empujarlo ligeramente fuera
+            )
+
+            // Squibble 3 (La forma larga y horizontal, debajo del progreso semanal)
+            Image(
+                painter = painterResource(id = R.drawable.squibble_3), // ¡Asegúrate de que este recurso exista!
+                contentDescription = null,
+                // Centrarlo horizontalmente, y colocarlo en la parte superior.
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
                     .fillMaxWidth()
-                    .padding(vertical = 8.dp),
-                horizontalArrangement = Arrangement.SpaceAround,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                appData.dailyProgress.forEach { dayProgress ->
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text(text = dayProgress.day, color=  Color(0xFF244984), fontSize = 12.sp)
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Image(
-                            painter = painterResource(
-                                id = if (dayProgress.completed) R.drawable.ic_character_completed else R.drawable.ic_character_uncompleted
-                            ), // Reemplaza con tus propios drawables
-                            contentDescription = null,
-                            modifier = Modifier.size(48.dp)
-                        )
-                    }
-                }
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(
-                text = "Misiones Diarias:",
-                color=  Color(0xFF244984),
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Bold
+                    .height(80.dp) // Altura ajustada
+                    .offset(y = 0.dp) // Moverlo hacia abajo para que quede debajo del encabezado
             )
-            // Sección 2: Misiones Diarias
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(8.dp),
-                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = CardBackgroundColor),
-                border= CardDefaults.outlinedCardBorder()
+
+            // ===================================
+            // CONTENIDO PRINCIPAL (Capa superior)
+            // ===================================
+            // El contenido de tu pantalla debe ir en una columna encima de los squibbles
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp) // Padding para todo el contenido
             ) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
+                // Sección 1: Progreso Semanal (Tu código existente)
+                Text(
+                    text = "¡Bienvenido de vuelta!",
+                    color=  Color(0xFF244984),
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(bottom = 16.dp)
+                )
 
-
-                    }
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceAround
-                    ) {
-                        appData.dailyMissions.forEach { mission ->
-                            MissionProgressBar(mission = mission)
-                        }
-                    }
-                }
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(
-                text = "Progreso General:",
-                color=  Color(0xFF244984),
-                fontSize = 18.sp,
-                fontWeight = FontWeight.SemiBold
-
-            )
-            // Sección 3: Progreso General
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(8.dp),
-                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = CardBackgroundColor),
-                border= CardDefaults.outlinedCardBorder()
-            ) {
+                // ... (Resto de tu código para el Progreso Semanal)
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(16.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
+                        .padding(vertical = 8.dp),
+                    horizontalArrangement = Arrangement.SpaceAround,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    // Barra circular de progreso
-                    Box(
-                        modifier = Modifier.size(200.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        CircularProgressIndicator(
-                            progress = appData.generalProgress.current / appData.generalProgress.max.toFloat(),
-                            modifier = Modifier.fillMaxSize(),
-                            strokeWidth = 8.dp,
-                            color = MaterialTheme.colorScheme.primary,
-                            trackColor = Color.LightGray.copy(alpha = 0.3f)
-                        )
-                        Text(
-                            text = "${appData.generalProgress.current}%",
-                            color=  Color(0xFF244984),
-                            fontSize = 50.sp,
-                            fontWeight = FontWeight.Bold,
-
-                        )
-                    }
-
-                    // Imagen y texto de racha
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Image(
-                            painter = painterResource(id = R.drawable.ic_character_completed), // Reemplaza con tu imagen de mascota
-                            contentDescription = null,
-                            modifier = Modifier.size(80.dp)
-                        )
-                        Text(
-                            text = "${appData.streakDays} días de racha!",
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            modifier = Modifier.padding(top = 4.dp)
-                        )
-
+                    appData.dailyProgress.forEach { dayProgress ->
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text(text = dayProgress.day, color=  Color(0xFF244984), fontSize = 12.sp)
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Image(
+                                painter = painterResource(
+                                    id = if (dayProgress.completed) R.drawable.ic_character_completed else R.drawable.ic_character_uncompleted
+                                ), // Reemplaza con tus propios drawables
+                                contentDescription = null,
+                                modifier = Modifier.size(48.dp)
+                            )
+                        }
                     }
                 }
-            }
 
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(
-                text = "Lecciones",
-                color=  Color(0xFF244984),
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(bottom = 12.dp)
-            )
-            // Sección 4: Lecciones
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(8.dp),
-                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = CardBackgroundColor),
-                border= CardDefaults.outlinedCardBorder()
-            ) {
-                Column(modifier = Modifier.padding(16.dp)) {
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(
+                    text = "Misiones Diarias:",
+                    color=  Color(0xFF244984),
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold
+                )
+                // Sección 2: Misiones Diarias (Tu código existente)
+                Card(
+                    modifier = Modifier.fillMaxWidth().clickable(onClick = onNavigateToDailyQuests),
+                    shape = RoundedCornerShape(8.dp),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = CardBackgroundColor),
+                    border= CardDefaults.outlinedCardBorder()
+                ) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceAround
+                        ) {
+                            appData.dailyMissions.forEach { mission ->
+                                MissionProgressBar(mission = mission)
+                            }
+                        }
+                    }
+                }
 
-                    appData.lessons.forEach { lesson ->
-                        ModuleProgressBar(module = lesson)
-                        Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(
+                    text = "Progreso General:",
+                    color=  Color(0xFF244984),
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.SemiBold
+                )
+                // Sección 3: Progreso General (Tu código existente)
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(8.dp),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = CardBackgroundColor),
+                    border= CardDefaults.outlinedCardBorder()
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        // Barra circular de progreso
+                        Box(
+                            modifier = Modifier.size(200.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            CircularProgressIndicator(
+                                progress = appData.generalProgress.current / appData.generalProgress.max.toFloat(),
+                                modifier = Modifier.fillMaxSize(),
+                                strokeWidth = 8.dp,
+                                color = MaterialTheme.colorScheme.primary,
+                                trackColor = Color.LightGray.copy(alpha = 0.3f)
+                            )
+                            Text(
+                                text = "${appData.generalProgress.current}%",
+                                color=  Color(0xFF244984),
+                                fontSize = 50.sp,
+                                fontWeight = FontWeight.Bold,
+                            )
+                        }
+
+                        // Imagen y texto de racha
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Image(
+                                painter = painterResource(id = R.drawable.ic_character_completed), // Reemplaza con tu imagen de mascota
+                                contentDescription = null,
+                                modifier = Modifier.size(80.dp)
+                            )
+                            Text(
+                                text = "${appData.streakDays} días de racha!",
+                                color=  Color(0xFF244984),
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                modifier = Modifier.padding(top = 4.dp)
+                            )
+
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(
+                    text = "Módulos",
+                    color=  Color(0xFF244984),
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(bottom = 12.dp)
+                )
+                // Sección 4: Lecciones (Tu código existente)
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(8.dp),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = CardBackgroundColor),
+                    border= CardDefaults.outlinedCardBorder()
+                ) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+
+                        appData.lessons.forEach { lesson ->
+                            ModuleProgressBar(module = lesson)
+                            Spacer(modifier = Modifier.height(8.dp))
+                        }
                     }
                 }
             }
         }
     }
-    // @Composable fun MissionProgressBar(...) // Debe estar definida aquí o en un archivo de utilidades
-    // @Composable fun ModuleProgressBar(...) // Debe estar definida aquí o en un archivo de utilidades
-    // ... (Asegúrate de incluir las definiciones de MissionProgressBar y ModuleProgressBar)
