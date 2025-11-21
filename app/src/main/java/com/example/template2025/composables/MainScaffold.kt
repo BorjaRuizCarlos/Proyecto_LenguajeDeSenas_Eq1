@@ -1,13 +1,11 @@
 package com.example.template2025.composables
 
 import androidx.compose.foundation.background
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.indication
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.Logout
@@ -21,16 +19,15 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.template2025.R
 import com.example.template2025.navigation.Route
 import com.example.template2025.screens.*
+import com.example.template2025.ui.theme.BlueLight
 import com.example.template2025.ui.theme.MissionUi
 import com.example.template2025.ui.theme.Template2025Theme
 import kotlinx.coroutines.launch
@@ -55,15 +52,13 @@ fun MainScaffold(
                     .background(Color(0xFF21409A)),
                 drawerContainerColor = Color(0xFF21409A),
             ) {
-                // Columna principal que organiza el contenido del menú
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(top = 40.dp, bottom = 12.dp),
                     horizontalAlignment = Alignment.Start,
-                    verticalArrangement = Arrangement.SpaceBetween // Esto empuja el logout al fondo
+                    verticalArrangement = Arrangement.SpaceBetween
                 ) {
-                    // Columna para los items de navegación principales
                     Column {
                         DrawerTextItem("Home", Icons.Filled.Home) {
                             nav.navigate(Route.Home.route)
@@ -86,7 +81,6 @@ fun MainScaffold(
                             scope.launch { drawerState.close() }
                         }
                     }
-                    // Botón de cerrar sesión, separado del resto
                     DrawerTextItem(
                         label = "Cerrar sesión",
                         icon = Icons.Outlined.Logout,
@@ -101,6 +95,7 @@ fun MainScaffold(
         }
     ) {
         Scaffold(
+            containerColor = BlueLight, // fondo base del contenido
             topBar = {
                 TopAppBar(
                     title = { Text("Template App", color = Color.White) },
@@ -109,37 +104,49 @@ fun MainScaffold(
                             Icon(Icons.Filled.Menu, contentDescription = "Menu", tint = Color.White)
                         }
                     },
-                    colors = TopAppBarDefaults.topAppBarColors(containerColor = Color(0xFF21409A))
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = Color(0xFF21409A)
+                    )
                 )
             }
         ) { innerPadding ->
             NavHost(
                 navController = nav,
                 startDestination = Route.Home.route,
-                modifier = Modifier.padding(innerPadding)
+                modifier = Modifier.padding(innerPadding) // padding SOLO aquí
             ) {
-                composable(Route.Home.route) { HomeScreen(navController = nav) }
-                composable(Route.Profile.route) { ProfileScreen() }
+                composable(Route.Home.route)     { HomeScreen(navController = nav) }
+                composable(Route.Profile.route)  { ProfileScreen() }
                 composable(Route.Settings.route) { SettingsScreen() }
-                composable(Route.Modules.route) { ModulesScreen(navController = nav) }
+                composable(Route.Modules.route)  { ModulesScreen(navController = nav) }
+
                 composable(Route.Abecedario.route) {
                     AbecedarioScreen(
                         letter = "B",
                         mainImage = R.drawable.btn_abecedario_continuar,
                         onPrev = {},
                         onNext = {},
-                        modifier = Modifier.padding(innerPadding) // Padding corregido
+                        // sin innerPadding extra
                     )
                 }
+
                 composable(Route.DailyQuests.route) {
                     MisionesDiariasScreen(
                         missions = listOf(
                             MissionUi("Gana 50 XP", 43, 50, R.drawable.ic_mision_xp),
                             MissionUi("Completa 2 lecciones", 1, 2, R.drawable.ic_mision_lecciones),
                             MissionUi("Termina un modulo", 43, 50, R.drawable.ic_mision_modulo)
-                        ),
-                        modifier = Modifier.padding(innerPadding) // Padding corregido
+                        )
+                        // sin innerPadding aquí
                     )
+                }
+
+                composable(
+                    route = Route.InsideModule.route,
+                    arguments = listOf(navArgument("moduleId") { type = NavType.IntType })
+                ) { backStackEntry ->
+                    val moduleId = backStackEntry.arguments?.getInt("moduleId")
+                    InsideModulesScreen(navController = nav, moduleId = moduleId)
                 }
             }
         }
@@ -180,7 +187,12 @@ fun DrawerTextItem(
         Row(verticalAlignment = Alignment.CenterVertically) {
             Icon(icon, contentDescription = null, tint = textColor)
             Spacer(Modifier.width(14.dp))
-            Text(label, color = textColor, style = MaterialTheme.typography.bodyLarge, fontWeight = if (bold) FontWeight.Bold else FontWeight.Normal)
+            Text(
+                label,
+                color = textColor,
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = if (bold) FontWeight.Bold else FontWeight.Normal
+            )
         }
         HorizontalDivider(
             modifier = Modifier

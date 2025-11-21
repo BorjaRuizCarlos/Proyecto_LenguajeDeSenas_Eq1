@@ -1,18 +1,8 @@
-@file:OptIn(ExperimentalMaterial3Api::class)
-
 package com.example.template2025.screens
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -31,6 +21,7 @@ import com.example.template2025.ui.theme.BlueDark
 import com.example.template2025.ui.theme.BlueLight
 import com.example.template2025.ui.theme.MissionUi
 import com.example.template2025.ui.theme.Template2025Theme
+import androidx.compose.foundation.layout.PaddingValues
 
 /**
  * Muestra el contenido de la pantalla de misiones diarias.
@@ -39,12 +30,13 @@ import com.example.template2025.ui.theme.Template2025Theme
 @Composable
 fun MisionesDiariasScreen(
     missions: List<MissionUi>,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    contentPadding: PaddingValues = PaddingValues(0.dp) // <- padding del Scaffold
 ) {
     Box(
         modifier = modifier
             .fillMaxSize()
-            .background(BlueLight)
+            .background(BlueLight)   // fondo azul ocupa TODO el área
     ) {
         // Mascota grande PNG en la esquina inferior izquierda
         Image(
@@ -60,7 +52,8 @@ fun MisionesDiariasScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 20.dp),
+                .padding(contentPadding)         // <- aquí aplicamos el padding del Scaffold
+                .padding(horizontal = 20.dp),    // padding propio de la pantalla
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Spacer(Modifier.height(28.dp))
@@ -95,19 +88,20 @@ fun MisionesDiariasScreen(
 @Composable
 fun MisionesDiariasPreview() {
     Template2025Theme {
-        // El Scaffold se usa aquí solo para el preview, para simular el look & feel.
-        Scaffold {
-                padding ->
+        // El Scaffold se usa aquí solo para el preview.
+        Scaffold(
+            containerColor = BlueLight   // para que también el fondo del Scaffold sea azul
+        ) { padding ->
             val missions = listOf(
                 MissionUi("Gana 50 XP", 43, 50, R.drawable.ic_mision_xp),
                 MissionUi("Completa 2 lecciones", 1, 2, R.drawable.ic_mision_lecciones),
                 MissionUi("Termina un modulo", 43, 50, R.drawable.ic_mision_modulo)
             )
 
-            // Pasamos el padding del Scaffold del preview a la pantalla real.
             MisionesDiariasScreen(
                 missions = missions,
-                modifier = Modifier.padding(padding)
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = padding      // <- pasamos el padding aquí
             )
         }
     }
