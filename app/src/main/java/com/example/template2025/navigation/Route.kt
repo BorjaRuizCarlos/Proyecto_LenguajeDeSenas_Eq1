@@ -19,6 +19,14 @@ sealed class Route(val route: String) {
     data object InsideModule : Route("inside_module/{moduleId}") {
         fun createRoute(moduleId: Int) = "inside_module/$moduleId"
     }
+
+    data object DiccionarioWord : Route("diccionario_word/{word}") {
+        fun createRoute(word: String) = "diccionario_word/$word"
+    }
+
     data object DailyQuests : Route("dailyquests")
-    data object Abecedario : Route(route = "abecedario")
+    data object Abecedario : Route("abecedario")
+
+    // 🔹 Nueva ruta para el buscador de diccionario
+    data object Diccionario : Route("diccionario")
 }

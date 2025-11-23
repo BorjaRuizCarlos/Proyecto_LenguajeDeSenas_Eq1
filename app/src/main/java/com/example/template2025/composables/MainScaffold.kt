@@ -2,14 +2,12 @@ package com.example.template2025.composables
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.indication
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.Logout
-import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -73,7 +71,7 @@ fun MainScaffold(
                             scope.launch { drawerState.close() }
                         }
                         DrawerTextItem("Diccionario", Icons.Filled.Menu) {
-                            nav.navigate(Route.Abecedario.route)
+                            nav.navigate(Route.Diccionario.route)
                             scope.launch { drawerState.close() }
                         }
                         DrawerTextItem("Mi Cuenta", Icons.Filled.Person) {
@@ -95,13 +93,17 @@ fun MainScaffold(
         }
     ) {
         Scaffold(
-            containerColor = BlueLight, // fondo base del contenido
+            containerColor = BlueLight,
             topBar = {
                 TopAppBar(
                     title = { Text("Template App", color = Color.White) },
                     navigationIcon = {
                         IconButton(onClick = { scope.launch { drawerState.open() } }) {
-                            Icon(Icons.Filled.Menu, contentDescription = "Menu", tint = Color.White)
+                            Icon(
+                                Icons.Filled.Menu,
+                                contentDescription = "Menu",
+                                tint = Color.White
+                            )
                         }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(
@@ -113,7 +115,7 @@ fun MainScaffold(
             NavHost(
                 navController = nav,
                 startDestination = Route.Home.route,
-                modifier = Modifier.padding(innerPadding) // padding SOLO aquí
+                modifier = Modifier.padding(innerPadding)
             ) {
                 composable(Route.Home.route)     { HomeScreen(navController = nav) }
                 composable(Route.Profile.route)  { ProfileScreen() }
@@ -126,7 +128,6 @@ fun MainScaffold(
                         mainImage = R.drawable.btn_abecedario_continuar,
                         onPrev = {},
                         onNext = {},
-                        // sin innerPadding extra
                     )
                 }
 
@@ -135,9 +136,8 @@ fun MainScaffold(
                         missions = listOf(
                             MissionUi("Gana 50 XP", 43, 50, R.drawable.ic_mision_xp),
                             MissionUi("Completa 2 lecciones", 1, 2, R.drawable.ic_mision_lecciones),
-                            MissionUi("Termina un modulo", 43, 50, R.drawable.ic_mision_modulo)
+                            MissionUi("Termina un módulo", 43, 50, R.drawable.ic_mision_modulo)
                         )
-                        // sin innerPadding aquí
                     )
                 }
 
@@ -147,6 +147,30 @@ fun MainScaffold(
                 ) { backStackEntry ->
                     val moduleId = backStackEntry.arguments?.getInt("moduleId")
                     InsideModulesScreen(navController = nav, moduleId = moduleId)
+                }
+                composable(Route.Diccionario.route) {
+                    BuscadorDiccionarioRoute(
+                        words = listOf(
+                            "Casa", "Perro", "Gato", "Comida", "Escuela", "Libro", "Mesa",
+                            "Familia", "Trabajo", "Amigo", "Agua", "Juego", "Ropa"
+                        ),
+                        onWordClick = { word ->
+                            nav.navigate(Route.DiccionarioWord.createRoute(word))
+                        }
+                    )
+                }
+
+                composable(
+                    route = Route.DiccionarioWord.route,
+                    arguments = listOf(navArgument("word") { type = NavType.StringType })
+                ) { backStackEntry ->
+                    val word = backStackEntry.arguments?.getString("word") ?: "Palabra"
+
+                    PalabraDiccionarioScreen(
+                        word = word,
+                        imageRes = R.drawable.btn_abecedario_continuar, // reemplaza con tu imagen real
+                        onBack = { nav.popBackStack() }
+                    )
                 }
             }
         }
@@ -175,13 +199,6 @@ fun DrawerTextItem(
                 interactionSource = interaction,
                 indication = null
             ) { onClick() }
-            .indication(
-                interactionSource = interaction,
-                indication = ripple(
-                    bounded = true,
-                    color = Color.White.copy(alpha = 0.25f)
-                )
-            )
             .padding(horizontal = 20.dp, vertical = 14.dp)
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
