@@ -24,6 +24,18 @@ sealed class Route(val route: String) {
         fun createRoute(word: String) = "diccionario_word/$word"
     }
 
+    // 🔹 Nueva: pantalla práctica de lección
+    data object LessonPractice : Route("lesson_practice/{moduleId}/{lessonId}") {
+        fun createRoute(moduleId: Int, lessonId: Int) =
+            "lesson_practice/$moduleId/$lessonId"
+    }
+
+    // 🔹 Nueva: pantalla pregunta de lección
+    data object LessonQuestion : Route("lesson_question/{moduleId}/{lessonId}") {
+        fun createRoute(moduleId: Int, lessonId: Int) =
+            "lesson_question/$moduleId/$lessonId"
+    }
+
     data object DailyQuests : Route("dailyquests")
     data object Abecedario : Route("abecedario")
 

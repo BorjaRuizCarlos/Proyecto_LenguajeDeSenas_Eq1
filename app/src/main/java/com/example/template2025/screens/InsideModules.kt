@@ -1,16 +1,10 @@
 package com.example.template2025.screens
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -29,6 +23,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.example.template2025.navigation.Route
 import com.example.template2025.viewModel.Lesson
 import com.example.template2025.viewModel.ModuleViewModel
 
@@ -57,24 +52,42 @@ fun InsideModulesScreen(
                 textAlign = TextAlign.Center,
                 fontWeight = FontWeight.Bold
             )
+
             LazyColumn(
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                items(lessons) { lesson ->
-                    LessonCard(lesson = lesson)
+                // usamos itemsIndexed para obtener el índice de la lección
+                itemsIndexed(lessons) { index, lesson ->
+                    LessonCard(
+                        lesson = lesson,
+                        onClick = {
+                            val currentModuleId = moduleId ?: 0
+                            // usamos el índice como lessonId en la navegación
+                            navController.navigate(
+                                Route.LessonPractice.createRoute(
+                                    moduleId = currentModuleId,
+                                    lessonId = index
+                                )
+                            )
+                        }
+                    )
                 }
             }
         } else {
-            // Handle case where module is not found
             Text(text = "Módulo no encontrado")
         }
     }
 }
 
 @Composable
-fun LessonCard(lesson: Lesson) {
+fun LessonCard(
+    lesson: Lesson,
+    onClick: () -> Unit
+) {
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onClick() },   // ahora la tarjeta es clickeable
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = Color(0xFFC0D6E8))
     ) {
