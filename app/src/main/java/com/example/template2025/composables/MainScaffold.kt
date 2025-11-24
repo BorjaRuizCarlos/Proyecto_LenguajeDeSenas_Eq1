@@ -17,6 +17,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -28,6 +29,7 @@ import com.example.template2025.screens.*
 import com.example.template2025.ui.theme.BlueLight
 import com.example.template2025.ui.theme.MissionUi
 import com.example.template2025.ui.theme.Template2025Theme
+import com.example.template2025.viewModel.ProfileViewModel
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -39,6 +41,9 @@ fun MainScaffold(
     val nav = rememberNavController()
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
+
+    // ViewModel compartido para perfil (foto, username, bio)
+    val profileViewModel: ProfileViewModel = viewModel()
 
     ModalNavigationDrawer(
         drawerState = drawerState,
@@ -118,10 +123,24 @@ fun MainScaffold(
                 modifier = Modifier.padding(innerPadding)
             ) {
                 // --------- principales ---------
-                composable(Route.Home.route)     { HomeScreen(navController = nav) }
-                composable(Route.Profile.route)  { ProfileScreen(navController = nav) }
-                composable(Route.Settings.route) { SettingsScreen() }
-                composable(Route.Modules.route)  { ModulesScreen(navController = nav) }
+                composable(Route.Home.route) {
+                    HomeScreen(navController = nav)
+                }
+                composable(Route.Profile.route) {
+                    ProfileScreen(
+                        navController = nav,
+                        profileViewModel = profileViewModel
+                    )
+                }
+                composable(Route.Settings.route) {
+                    SettingsScreen(
+                        profileViewModel = profileViewModel,
+                        onBack = { nav.popBackStack() }
+                    )
+                }
+                composable(Route.Modules.route)  {
+                    ModulesScreen(navController = nav)
+                }
 
                 // --------- abecedario / misiones ---------
                 composable(Route.Abecedario.route) {
@@ -223,15 +242,18 @@ fun MainScaffold(
 
                 // --------- opciones de perfil ---------
                 composable(Route.ProfileEditPhoto.route) {
-                    EditPhotoScreen()
+                    EditPhotoScreen(
+                        profileViewModel = profileViewModel,
+                        onBack = { nav.popBackStack() }
+                    )
                 }
 
                 composable(Route.ProfileNotifications.route) {
-                    NotificationsSettingsScreen()
+                    NotificationsSettingsScreen(onBack = { nav.popBackStack() })
                 }
 
                 composable(Route.ProfilePrivacy.route) {
-                    PrivacySettingsScreen()
+                    PrivacySettingsScreen(onBack = { nav.popBackStack() })
                 }
             }
         }

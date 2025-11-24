@@ -18,6 +18,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -35,9 +36,18 @@ import com.example.template2025.R
 import com.example.template2025.navigation.Route
 import com.example.template2025.ui.theme.BlueLight
 import com.example.template2025.ui.theme.Template2025Theme
+import com.example.template2025.viewModel.ProfileViewModel
 
 @Composable
-fun ProfileScreen(navController: NavController) {
+fun ProfileScreen(
+    navController: NavController,
+    profileViewModel: ProfileViewModel
+) {
+    // 🔹 Leer SIEMPRE del ViewModel (nada hardcodeado)
+    val avatarRes by profileViewModel.selectedAvatarResId
+    val username by profileViewModel.username
+    val bio by profileViewModel.bio
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -79,7 +89,7 @@ fun ProfileScreen(navController: NavController) {
                         contentAlignment = Alignment.TopEnd
                     ) {
                         Image(
-                            painter = painterResource(id = R.drawable.ic_launcher_foreground),
+                            painter = painterResource(id = avatarRes),
                             contentDescription = "Foto de perfil",
                             modifier = Modifier
                                 .size(130.dp)
@@ -98,7 +108,7 @@ fun ProfileScreen(navController: NavController) {
                     Spacer(Modifier.height(20.dp))
 
                     Text(
-                        text = "Ricardo",
+                        text = username,          // ← viene del ViewModel
                         fontSize = 28.sp,
                         fontWeight = FontWeight.ExtraBold,
                         color = Color.White
@@ -107,7 +117,7 @@ fun ProfileScreen(navController: NavController) {
                     Spacer(Modifier.height(4.dp))
 
                     Text(
-                        text = "ricardo30@gmail.com",
+                        text = "ricardo30@gmail.com", // si luego quieres, también lo pasamos al VM
                         fontSize = 14.sp,
                         color = Color(0xFFE5EBFF)
                     )
@@ -123,8 +133,7 @@ fun ProfileScreen(navController: NavController) {
                     Spacer(Modifier.height(20.dp))
 
                     Text(
-                        text = "This is my bio and thank you for taking time " +
-                                "to read it as it means a lot to me.",
+                        text = bio,             // ← viene del ViewModel
                         fontSize = 14.sp,
                         color = Color.White,
                         textAlign = TextAlign.Center,
@@ -146,7 +155,6 @@ fun ProfileScreen(navController: NavController) {
                     subtitle = "Preferencias de la cuenta",
                     icon = Icons.Default.Settings
                 ) {
-                    // Navega a la pantalla de Settings que ya tienes
                     navController.navigate(Route.Settings.route)
                 }
 
@@ -238,60 +246,12 @@ fun ProfileOptionCard(
     }
 }
 
-/* --------- PANTALLAS PLACEHOLDER PARA LAS OPCIONES --------- */
-
-@Composable
-fun EditPhotoScreen() {
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(BlueLight),
-        contentAlignment = Alignment.Center
-    ) {
-        Text(
-            text = "Pantalla: Cambiar foto de perfil",
-            fontWeight = FontWeight.Bold,
-            color = Color(0xFF21409A)
-        )
-    }
-}
-
-@Composable
-fun NotificationsSettingsScreen() {
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(BlueLight),
-        contentAlignment = Alignment.Center
-    ) {
-        Text(
-            text = "Pantalla: Notificaciones",
-            fontWeight = FontWeight.Bold,
-            color = Color(0xFF21409A)
-        )
-    }
-}
-
-@Composable
-fun PrivacySettingsScreen() {
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(BlueLight),
-        contentAlignment = Alignment.Center
-    ) {
-        Text(
-            text = "Pantalla: Privacidad y seguridad",
-            fontWeight = FontWeight.Bold,
-            color = Color(0xFF21409A)
-        )
-    }
-}
-
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun ProfileScreenPreview() {
     Template2025Theme {
-        ProfileScreen(navController = rememberNavController())
+        val nav = rememberNavController()
+        val vm = ProfileViewModel()
+        ProfileScreen(navController = nav, profileViewModel = vm)
     }
 }
