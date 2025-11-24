@@ -15,30 +15,32 @@ sealed class Route(val route: String) {
     data object Settings : Route("settings")
     data object Modules : Route("modules")
 
-    // Ruta para ver el contenido de un módulo. Acepta un argumento "moduleId".
+    // Módulos
     data object InsideModule : Route("inside_module/{moduleId}") {
         fun createRoute(moduleId: Int) = "inside_module/$moduleId"
     }
+
+    data object DailyQuests : Route("dailyquests")
+    data object Abecedario : Route("abecedario")
+    data object Diccionario : Route("diccionario")
 
     data object DiccionarioWord : Route("diccionario_word/{word}") {
         fun createRoute(word: String) = "diccionario_word/$word"
     }
 
-    // 🔹 Nueva: pantalla práctica de lección
+    // Lecciones
     data object LessonPractice : Route("lesson_practice/{moduleId}/{lessonId}") {
         fun createRoute(moduleId: Int, lessonId: Int) =
             "lesson_practice/$moduleId/$lessonId"
     }
 
-    // 🔹 Nueva: pantalla pregunta de lección
     data object LessonQuestion : Route("lesson_question/{moduleId}/{lessonId}") {
         fun createRoute(moduleId: Int, lessonId: Int) =
             "lesson_question/$moduleId/$lessonId"
     }
 
-    data object DailyQuests : Route("dailyquests")
-    data object Abecedario : Route("abecedario")
-
-    // 🔹 Nueva ruta para el buscador de diccionario
-    data object Diccionario : Route("diccionario")
+    // Rutas de opciones de perfil
+    data object ProfileEditPhoto : Route("profile_edit_photo")
+    data object ProfileNotifications : Route("profile_notifications")
+    data object ProfilePrivacy : Route("profile_privacy")
 }

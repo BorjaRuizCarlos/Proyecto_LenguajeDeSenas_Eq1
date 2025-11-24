@@ -117,13 +117,13 @@ fun MainScaffold(
                 startDestination = Route.Home.route,
                 modifier = Modifier.padding(innerPadding)
             ) {
-                // --------- RUTAS PRINCIPALES ---------
+                // --------- principales ---------
                 composable(Route.Home.route)     { HomeScreen(navController = nav) }
-                composable(Route.Profile.route)  { ProfileScreen() }
+                composable(Route.Profile.route)  { ProfileScreen(navController = nav) }
                 composable(Route.Settings.route) { SettingsScreen() }
                 composable(Route.Modules.route)  { ModulesScreen(navController = nav) }
 
-                // Abecedario
+                // --------- abecedario / misiones ---------
                 composable(Route.Abecedario.route) {
                     AbecedarioScreen(
                         letter = "B",
@@ -133,7 +133,6 @@ fun MainScaffold(
                     )
                 }
 
-                // Misiones diarias
                 composable(Route.DailyQuests.route) {
                     MisionesDiariasScreen(
                         missions = listOf(
@@ -144,7 +143,7 @@ fun MainScaffold(
                     )
                 }
 
-                // Inside módulo (lista de lecciones)
+                // --------- módulos ---------
                 composable(
                     route = Route.InsideModule.route,
                     arguments = listOf(navArgument("moduleId") { type = NavType.IntType })
@@ -153,7 +152,7 @@ fun MainScaffold(
                     InsideModulesScreen(navController = nav, moduleId = moduleId)
                 }
 
-                // --------- DICCIONARIO ---------
+                // --------- diccionario ---------
                 composable(Route.Diccionario.route) {
                     BuscadorDiccionarioRoute(
                         words = listOf(
@@ -174,14 +173,12 @@ fun MainScaffold(
 
                     PalabraDiccionarioScreen(
                         word = word,
-                        imageRes = R.drawable.btn_abecedario_continuar, // reemplaza con tu imagen real
+                        imageRes = R.drawable.btn_abecedario_continuar,
                         onBack = { nav.popBackStack() }
                     )
                 }
 
-                // --------- CONTENIDO DE LECCIONES ---------
-
-                // Pantalla práctica (palabra / seña)
+                // --------- lecciones ---------
                 composable(
                     route = Route.LessonPractice.route,
                     arguments = listOf(
@@ -193,7 +190,7 @@ fun MainScaffold(
                     val lessonId = backStackEntry.arguments?.getInt("lessonId") ?: 0
 
                     PracticaLetraScreen(
-                        titulo = "Palabra",   // luego lo sacas del ViewModel con moduleId/lessonId
+                        titulo = "Palabra",
                         imageRes = R.drawable.btn_abecedario_continuar,
                         onContinuar = {
                             nav.navigate(
@@ -206,35 +203,35 @@ fun MainScaffold(
                     )
                 }
 
-                // Pantalla pregunta (4 opciones + continuar)
                 composable(
                     route = Route.LessonQuestion.route,
                     arguments = listOf(
                         navArgument("moduleId") { type = NavType.IntType },
                         navArgument("lessonId") { type = NavType.IntType }
                     )
-                ) { backStackEntry ->
-                    val moduleId = backStackEntry.arguments?.getInt("moduleId") ?: 0
-                    val lessonId = backStackEntry.arguments?.getInt("lessonId") ?: 0
-
+                ) {
                     PreguntaLeccionScreen(
                         pregunta = "¿Cuál de estas opciones es la correcta?",
-                        respuestas = listOf(
-                            "Respuesta 1",
-                            "Respuesta 2",
-                            "Respuesta 3",
-                            "Respuesta 4"
-                        ),
+                        respuestas = listOf("Respuesta 1", "Respuesta 2", "Respuesta 3", "Respuesta 4"),
                         imageRes = R.drawable.btn_abecedario_continuar,
-                        onRespuestaClick = { /* aquí luego validas correcta/incorrecta */ },
+                        onRespuestaClick = { },
                         onContinuar = {
-                            // Por ahora regresa al módulo
-                            nav.popBackStack(
-                                Route.InsideModule.route,
-                                inclusive = false
-                            )
+                            nav.popBackStack(Route.InsideModule.route, inclusive = false)
                         }
                     )
+                }
+
+                // --------- opciones de perfil ---------
+                composable(Route.ProfileEditPhoto.route) {
+                    EditPhotoScreen()
+                }
+
+                composable(Route.ProfileNotifications.route) {
+                    NotificationsSettingsScreen()
+                }
+
+                composable(Route.ProfilePrivacy.route) {
+                    PrivacySettingsScreen()
                 }
             }
         }
