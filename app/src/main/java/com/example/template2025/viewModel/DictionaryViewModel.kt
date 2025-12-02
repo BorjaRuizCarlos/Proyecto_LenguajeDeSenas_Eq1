@@ -25,12 +25,28 @@ class DictionaryViewModel(
     private val _uiState = MutableStateFlow(DictionaryUiState(loading = true))
     val uiState: StateFlow<DictionaryUiState> = _uiState
 
-    fun loadDictionary() {
+    /**
+     * Carga el diccionario usando el token JWT.
+     */
+    fun loadDictionary(token: String?) {
         viewModelScope.launch {
             _uiState.value = DictionaryUiState(loading = true)
 
+            // Si no hay token, marcamos error directamente
+            if (token.isNullOrBlank()) {
+                _uiState.value = DictionaryUiState(
+                    loading = false,
+                    error = "No se encontró token. Vuelve a iniciar sesión."
+                )
+                return@launch
+            }
+
             try {
-                val res = api.getDictionary()       // sin search, trae todo
+                val authHeader = "Bearer $token"
+
+                // IMPORTANTE: ApiService.getDictionary ahora debe aceptar el header
+                val res = api.getDictionary(authHeader)   // sin search, trae todo
+
                 if (res.isSuccessful && res.body() != null) {
                     val body: DictionaryListResponse = res.body()!!
                     _uiState.value = DictionaryUiState(

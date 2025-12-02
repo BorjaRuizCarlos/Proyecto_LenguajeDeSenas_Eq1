@@ -22,12 +22,25 @@ class WordDetailViewModel(
     private val _uiState = MutableStateFlow(WordDetailUiState(loading = true))
     val uiState: StateFlow<WordDetailUiState> = _uiState
 
-    fun loadWord(id: Int) {
+    /**
+     * Carga el detalle de una palabra usando el token JWT.
+     */
+    fun loadWord(id: Int, token: String?) {
         viewModelScope.launch {
             _uiState.value = WordDetailUiState(loading = true)
 
+            // Si no hay token, marcamos error
+            if (token.isNullOrBlank()) {
+                _uiState.value = WordDetailUiState(
+                    loading = false,
+                    error = "No se encontró token. Vuelve a iniciar sesión."
+                )
+                return@launch
+            }
+
             try {
-                val res = api.getDictionaryWord(id)
+                val authHeader = "Bearer $token"
+                val res = api.getDictionaryWord(authHeader, id)
                 if (res.isSuccessful && res.body() != null) {
                     _uiState.value = WordDetailUiState(
                         loading = false,

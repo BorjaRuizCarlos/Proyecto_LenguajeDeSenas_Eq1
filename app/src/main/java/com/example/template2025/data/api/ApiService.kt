@@ -34,17 +34,22 @@ interface ApiService {
 
     // ===================== DICCIONARIO =====================
 
+// ===================== DICCIONARIO =====================
+
     // GET /dictionary/  (search es opcional)
     @GET("dictionary/")
     suspend fun getDictionary(
+        @Header("Authorization") authorization: String,
         @Query("search") search: String? = null
     ): Response<DictionaryListResponse>
 
     // GET /dictionary/{word_id}
     @GET("dictionary/{word_id}")
     suspend fun getDictionaryWord(
+        @Header("Authorization") authorization: String,
         @Path("word_id") wordId: Int
     ): Response<DictionaryWordDetail>
+
 
     companion object {
         fun create(baseUrl: String): ApiService {

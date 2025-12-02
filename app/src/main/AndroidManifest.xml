@@ -3,6 +3,7 @@
 
     <!-- Necesario para llamadas de red -->
     <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.INTERNET" />
 
     <application
         android:allowBackup="true"

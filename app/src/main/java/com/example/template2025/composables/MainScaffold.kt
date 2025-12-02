@@ -192,7 +192,8 @@ fun MainScaffold(
                     BuscadorDiccionarioRoute(
                         onWordClick = { wordId ->
                             nav.navigate(Route.DiccionarioWord.createRoute(wordId))
-                        }
+                        },
+                        token = safeToken   // 👈 importantísimo
                     )
                 }
 
@@ -203,6 +204,7 @@ fun MainScaffold(
                     val wordId = backStackEntry.arguments?.getInt("wordId") ?: 0
                     PalabraDiccionarioRoute(
                         wordId = wordId,
+                        token = safeToken,              // 👈 le pasas el token
                         onBack = { nav.popBackStack() }
                     )
                 }

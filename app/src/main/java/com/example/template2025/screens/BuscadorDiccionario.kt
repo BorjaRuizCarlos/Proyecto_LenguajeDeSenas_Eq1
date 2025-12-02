@@ -29,11 +29,6 @@ import com.example.template2025.ui.theme.Template2025Theme
 import com.example.template2025.viewModel.DictionaryUiState
 import com.example.template2025.viewModel.DictionaryViewModel
 import com.example.template2025.viewModel.DictionaryViewModelFactory
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.runtime.collectAsState
-import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.compose.runtime.LaunchedEffect
 
 /* ---------------------------------------------------------------- */
 /* -----------------   ROUTE CON ESTADO   -------------------------- */
@@ -42,6 +37,7 @@ import androidx.compose.runtime.LaunchedEffect
 @Composable
 fun BuscadorDiccionarioRoute(
     onWordClick: (Int) -> Unit,
+    token: String?,                    // 👈 ahora recibe el token
     modifier: Modifier = Modifier
 ) {
     val apiService = remember { ApiService.RetrofitClient.apiService }
@@ -53,9 +49,11 @@ fun BuscadorDiccionarioRoute(
     val uiState by vm.uiState.collectAsState()
     var searchQuery by remember { mutableStateOf("") }
 
-    // Cargamos todas las palabras una sola vez
-    LaunchedEffect(Unit) {
-        vm.loadDictionary()
+    // Cargamos todas las palabras cuando tengamos token
+    LaunchedEffect(token) {
+        if (!token.isNullOrBlank()) {
+            vm.loadDictionary(token)   // 👈 usa la nueva firma del ViewModel
+        }
     }
 
     Box(
@@ -64,6 +62,20 @@ fun BuscadorDiccionarioRoute(
             .background(BlueLight)
     ) {
         when {
+            token.isNullOrBlank() -> {
+                // Caso sin token (igual que en HomeScreen)
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "No se encontró token.\nVuelve a iniciar sesión.",
+                        color = MaterialTheme.colorScheme.error,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                }
+            }
+
             uiState.loading -> {
                 Box(
                     modifier = Modifier.fillMaxSize(),
