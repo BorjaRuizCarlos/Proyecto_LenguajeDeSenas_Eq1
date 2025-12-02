@@ -226,6 +226,30 @@ fun MainScaffold(
                         )
                     }
 
+                // --------- lecciones ---------
+// ... en tu MainScaffold
+
+// --------- lecciones (Nueva implementación) ---------
+                composable(
+                    route = Route.LessonsContent.route,
+                    arguments = listOf(
+                        navArgument("moduleId") { type = NavType.IntType },
+                        navArgument("lessonId") { type = NavType.IntType }
+                    )
+                ) { backStackEntry ->
+                    val moduleId = backStackEntry.arguments?.getInt("moduleId") ?: 0
+                    val lessonId = backStackEntry.arguments?.getInt("lessonId") ?: 0
+
+                    // Usamos LessonsContentScreen, que maneja el flujo interno
+                    LessonsContentScreen(
+                        navController = nav,
+                        moduleId = moduleId,
+                        lessonId = lessonId
+                    )
+                }
+
+// Los composables Route.LessonPractice y Route.LessonQuestion deben ser eliminados
+// o comentados de aquí si no quieres que sean navegables directamente.
                     // --------- lecciones ---------
                     composable(
                         route = Route.LessonPractice.route,

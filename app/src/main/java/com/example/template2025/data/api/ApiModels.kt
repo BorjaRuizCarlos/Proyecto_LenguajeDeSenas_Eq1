@@ -22,3 +22,19 @@ data class LoginResponse(
     val access_token: String,
     val token_type: String = "bearer"
 )
+// ApiModels.kt (package com.example.template2025.data.api)
+// ... (Tus clases SignupRequest, SignupResponse, LoginRequest, LoginResponse)
+
+// ====== HOME ======
+data class DayProgressResponse(val day: String, val completed: Boolean)
+data class MissionResponse(val name: String, val current: Int, val max: Int)
+data class ModuleResponse(val name: String, val current: Int, val max: Int)
+
+data class HomeResponse(
+    // Nota: Los nombres de las propiedades deben coincidir exactamente con lo que devuelve el API
+    val dailyProgress: List<DayProgressResponse>,
+    val dailyMissions: List<MissionResponse>,
+    val generalProgress: MissionResponse,
+    val streakDays: Int,
+    val lessons: List<ModuleResponse>
+)

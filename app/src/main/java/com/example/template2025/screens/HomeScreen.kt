@@ -1,5 +1,6 @@
     package com.example.template2025.screens // Asumiendo este es tu paquete de pantallas
 
+    import HomeViewModel
     import androidx.compose.foundation.Image
     import androidx.compose.foundation.background
     import androidx.compose.foundation.layout.Arrangement
@@ -26,6 +27,7 @@
     import androidx.compose.foundation.layout.offset
     // ... otras importaciones
     import androidx.compose.runtime.Composable
+    import androidx.compose.runtime.collectAsState
     import androidx.compose.ui.Alignment
     import androidx.compose.ui.Modifier
     import androidx.compose.ui.draw.clip
@@ -35,8 +37,30 @@
     import androidx.compose.ui.tooling.preview.Preview
     import androidx.compose.ui.unit.dp
     import androidx.compose.ui.unit.sp
+    import androidx.lifecycle.viewmodel.compose.viewModel
     import androidx.navigation.NavController
     import com.example.template2025.navigation.Route
+    import androidx.compose.runtime.collectAsState
+    import androidx.compose.runtime.getValue
+    // HomeViewModelFactory.kt (en presentation.home o similar)
+    import androidx.lifecycle.ViewModel
+    import androidx.lifecycle.ViewModelProvider
+    import com.example.template2025.data.api.ApiService
+
+    class HomeViewModelFactory(
+        private val apiService: ApiService // <<-- La dependencia que se inyecta
+    ) : ViewModelProvider.Factory {
+
+        // Sobrescribe el método create para instanciar tu ViewModel
+        override fun <T : ViewModel> create(modelClass: Class<T>): T {
+            if (modelClass.isAssignableFrom(HomeViewModel::class.java)) {
+                @Suppress("UNCHECKED_CAST")
+                // Creamos la instancia de HomeViewModel y le pasamos el ApiService
+                return HomeViewModel(apiService) as T
+            }
+            throw IllegalArgumentException("Unknown ViewModel class")
+        }
+    }
 
 
     // ... otras importaciones
@@ -102,16 +126,46 @@
     }
 
     @Composable
-    fun HomeScreen(navController: NavController) {
-        val appData = getFakeApiData() // Aquí obtienes los datos harcodeados o de la API
+    fun HomeScreen(
+        navController: NavController,
+        // El ViewModel se inyecta o crea automáticamente por Compose
+        viewModel: HomeViewModel = viewModel(factory = HomeViewModelFactory(apiService = ApiService.RetrofitClient.apiService))
+    ) {
+        // Observa el estado del ViewModel
+        val uiState by viewModel.uiState.collectAsState()
 
-        // Simplemente llamamos a la función de contenido
-        HomeScreenContent(
-            appData = appData,
-            onNavigateToDailyQuests = {
-                navController.navigate(Route.DailyQuests.route) // <--- Implementación de la navegación
+        // Manejo de los estados (Loading, Error, Success)
+        when (uiState) {
+            is HomeUiState.Loading -> {
+                // Mostrar un indicador de carga centrado
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator()
+                }
             }
-        )
+            is HomeUiState.Error -> {
+                // Mostrar un mensaje de error
+                val message = (uiState as HomeUiState.Error).message
+                Box(
+                    modifier = Modifier.fillMaxSize().padding(16.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(text = "Error: $message", color = MaterialTheme.colorScheme.error)
+                }
+            }
+            is HomeUiState.Success -> {
+                val appData = (uiState as HomeUiState.Success).appData
+                // Cargar el contenido de la pantalla con los datos del API
+                HomeScreenContent(
+                    appData = appData,
+                    onNavigateToDailyQuests = {
+                        navController.navigate(Route.DailyQuests.route)
+                    }
+                )
+            }
+        }
     }
 
     @Composable
