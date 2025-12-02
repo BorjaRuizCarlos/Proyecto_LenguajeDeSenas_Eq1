@@ -38,7 +38,11 @@ import com.example.template2025.dataStore.TokenStore
 import com.example.template2025.navigation.Route
 import com.example.template2025.screens.*
 import com.example.template2025.ui.theme.BlueLight
+import com.example.template2025.ui.theme.MissionUi
 import com.example.template2025.ui.theme.Template2025Theme
+import com.example.template2025.viewModel.DailyMissionsUiState
+import com.example.template2025.viewModel.DailyMissionsViewModel
+import com.example.template2025.viewModel.DailyMissionsViewModelFactory
 import com.example.template2025.viewModel.ProfileViewModel
 import com.example.template2025.viewModel.ProfileViewModelFactory
 import kotlinx.coroutines.launch
@@ -126,13 +130,7 @@ fun MainScaffold(
                     title = {
                         Column {
                             Text("Template App", color = Color.White)
-                            Text(
-                                text = if (!safeToken.isNullOrBlank())
-                                    "Token: ${safeToken.take(12)}..."
-                                else "Sin token",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = Color.White.copy(alpha = 0.7f)
-                            )
+
                         }
                     },
                     navigationIcon = {
@@ -165,6 +163,73 @@ fun MainScaffold(
                 // GRAFO DE PERFIL (Nuevo)
                 profileGraph(navController = nav, token = safeToken)
 
+                // 🔹 MISIONS DIARIAS – AQUÍ VA EL NUEVO CÓDIGO
+                composable(Route.DailyQuests.route) {
+
+                    val token = safeToken
+
+                    if (token.isNullOrBlank()) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(BlueLight),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = "No se encontró token.\nVuelve a iniciar sesión.",
+                                color = MaterialTheme.colorScheme.error
+                            )
+                        }
+                    } else {
+                        val apiService = ApiService.RetrofitClient.apiService
+
+                        val viewModel: DailyMissionsViewModel = viewModel(
+                            factory = DailyMissionsViewModelFactory(apiService)
+                        )
+
+                        LaunchedEffect(token) {
+                            viewModel.fetchDailyMissions(token)
+                        }
+
+                        val uiState by viewModel.uiState.collectAsState()
+
+                        when (uiState) {
+                            is DailyMissionsUiState.Loading -> {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .background(BlueLight),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    CircularProgressIndicator()
+                                }
+                            }
+
+                            is DailyMissionsUiState.Error -> {
+                                val message = (uiState as DailyMissionsUiState.Error).message
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .background(BlueLight),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text(
+                                        text = "Error al cargar misiones:\n$message",
+                                        color = MaterialTheme.colorScheme.error
+                                    )
+                                }
+                            }
+
+                            is DailyMissionsUiState.Success -> {
+                                val missions = (uiState as DailyMissionsUiState.Success).missions
+                                MisionesDiariasScreen(
+                                    missions = missions,
+                                    modifier = Modifier.fillMaxSize()
+                                )
+                            }
+                        }
+                    }
+                }
                 // AJUSTES
                 composable(Route.Settings.route) {
                     SettingsScreen(
@@ -191,28 +256,60 @@ fun MainScaffold(
                 // DICCIONARIO
                 composable(Route.Diccionario.route) {
                     BuscadorDiccionarioRoute(
-                        words = listOf("Casa", "Perro", "Gato", "Comida", "Trabajo"),
-                        onWordClick = { word ->
-                            nav.navigate(Route.DiccionarioWord.createRoute(word))
-                        }
+                        onWordClick = { wordId ->
+                            nav.navigate(Route.DiccionarioWord.createRoute(wordId))
+                        },
+                        token = safeToken   // 👈 importantísimo
                     )
                 }
 
                 composable(
                     route = Route.DiccionarioWord.route,
-                    arguments = listOf(navArgument("word") { type = NavType.StringType })
-                ) {
-                    val word = it.arguments?.getString("word") ?: "Palabra"
-                    PalabraDiccionarioScreen(
-                        word = word,
-                        imageRes = R.drawable.btn_abecedario_continuar,
+                    arguments = listOf(navArgument("wordId") { type = NavType.IntType })
+                ) { backStackEntry ->
+                    val wordId = backStackEntry.arguments?.getInt("wordId") ?: 0
+                    PalabraDiccionarioRoute(
+                        wordId = wordId,
+                        token = safeToken,              // 👈 le pasas el token
                         onBack = { nav.popBackStack() }
                     )
                 }
+                // ⭐ NUEVA ROUTE: InsideModule
+                composable(
+                    route = Route.InsideModule.route,
+                    arguments = listOf(
+                        navArgument("moduleId") { type = NavType.IntType }
+                    )
+                ) { backStackEntry ->
+                    val moduleId = backStackEntry.arguments?.getInt("moduleId")
+                    InsideModulesScreen(
+                        navController = nav,
+                        moduleId = moduleId
+                    )
+                }
+
+                // ⭐ NUEVA ROUTE: LessonsContent
+                composable(
+                    route = Route.LessonsContent.route,
+                    arguments = listOf(
+                        navArgument("moduleId") { type = NavType.IntType },
+                        navArgument("lessonId") { type = NavType.IntType }
+                    )
+                ) { backStackEntry ->
+                    val moduleId = backStackEntry.arguments?.getInt("moduleId")
+                    val lessonId = backStackEntry.arguments?.getInt("lessonId")
+
+                    LessonsContentScreen(
+                        navController = nav,
+                        moduleId = moduleId,
+                        lessonId = lessonId
+                    )
+                }
+            }
             }
         }
     }
-}
+
 
 // Función para el grafo de navegación de perfil
 fun NavGraphBuilder.profileGraph(navController: NavHostController, token: String?) {

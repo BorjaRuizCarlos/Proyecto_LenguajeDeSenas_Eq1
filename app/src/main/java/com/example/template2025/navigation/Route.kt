@@ -26,8 +26,8 @@ sealed class Route(val route: String) {
     data object Abecedario : Route("abecedario")
     data object Diccionario : Route("diccionario")
 
-    data object DiccionarioWord : Route("diccionario_word/{word}") {
-        fun createRoute(word: String) = "diccionario_word/$word"
+    object DiccionarioWord : Route("diccionario/{wordId}") {
+        fun createRoute(wordId: Int) = "diccionario/$wordId"
     }
 
     // Lecciones

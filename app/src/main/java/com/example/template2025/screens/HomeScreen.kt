@@ -4,6 +4,8 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -260,9 +262,11 @@ fun MissionProgressBar(mission: Mission) {
 @Composable
 fun HomeScreenContent(
     appData: AppData,
-    token: String?,
+    token: String?,               // 👈 ya no lo mostramos en UI, solo se recibe
     onNavigateToDailyQuests: () -> Unit
 ) {
+    val scrollState = rememberScrollState()
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -300,42 +304,10 @@ fun HomeScreenContent(
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .verticalScroll(scrollState)   // 👈 SCROLL VERTICAL
                 .padding(16.dp)
         ) {
-            // Tarjeta para ver token actual
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 12.dp),
-                shape = RoundedCornerShape(10.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = Color(0xFFE3F2FD)
-                ),
-                elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
-                border = CardDefaults.outlinedCardBorder()
-            ) {
-                Column(
-                    modifier = Modifier.padding(12.dp),
-                    verticalArrangement = Arrangement.spacedBy(4.dp)
-                ) {
-                    Text(
-                        text = "Token actual:",
-                        color = Color(0xFF244984),
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 14.sp
-                    )
-                    Text(
-                        text = when {
-                            token.isNullOrBlank() ->
-                                "Sin token (no loggeado o aún cargando)."
-                            else ->
-                                token.take(80) + if (token.length > 80) "..." else ""
-                        },
-                        color = Color(0xFF244984),
-                        fontSize = 12.sp
-                    )
-                }
-            }
+            // 🔹 Antes aquí estaba la tarjeta del token: ya la quitamos
 
             // ¡Bienvenida!
             Text(
@@ -493,6 +465,8 @@ fun HomeScreenContent(
                     }
                 }
             }
+
+            Spacer(modifier = Modifier.height(24.dp))
         }
     }
 }
