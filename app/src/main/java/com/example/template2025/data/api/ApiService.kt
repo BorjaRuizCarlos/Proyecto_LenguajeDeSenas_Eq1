@@ -21,8 +21,8 @@ interface ApiService {
     // 👇 Ahora recibe el header Authorization
     @GET("api/home")
     suspend fun getHomeData(
-        @Header("Authorization") authHeader: String
-    ): HomeResponse
+        @Header("Authorization") authorization: String
+    ): Response<HomeResponse>
 
     companion object {
         fun create(baseUrl: String): ApiService {
@@ -58,3 +58,4 @@ interface ApiService {
         }
     }
 }
+
