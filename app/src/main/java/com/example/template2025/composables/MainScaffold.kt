@@ -198,8 +198,11 @@ fun MainScaffold(
                 }
 
                 // --------- lecciones ---------
+// ... en tu MainScaffold
+
+// --------- lecciones (Nueva implementación) ---------
                 composable(
-                    route = Route.LessonPractice.route,
+                    route = Route.LessonsContent.route,
                     arguments = listOf(
                         navArgument("moduleId") { type = NavType.IntType },
                         navArgument("lessonId") { type = NavType.IntType }
@@ -208,37 +211,16 @@ fun MainScaffold(
                     val moduleId = backStackEntry.arguments?.getInt("moduleId") ?: 0
                     val lessonId = backStackEntry.arguments?.getInt("lessonId") ?: 0
 
-                    PracticaLetraScreen(
-                        titulo = "Palabra",
-                        imageRes = R.drawable.btn_abecedario_continuar,
-                        onContinuar = {
-                            nav.navigate(
-                                Route.LessonQuestion.createRoute(
-                                    moduleId = moduleId,
-                                    lessonId = lessonId
-                                )
-                            )
-                        }
+                    // Usamos LessonsContentScreen, que maneja el flujo interno
+                    LessonsContentScreen(
+                        navController = nav,
+                        moduleId = moduleId,
+                        lessonId = lessonId
                     )
                 }
 
-                composable(
-                    route = Route.LessonQuestion.route,
-                    arguments = listOf(
-                        navArgument("moduleId") { type = NavType.IntType },
-                        navArgument("lessonId") { type = NavType.IntType }
-                    )
-                ) {
-                    PreguntaLeccionScreen(
-                        pregunta = "¿Cuál de estas opciones es la correcta?",
-                        respuestas = listOf("Respuesta 1", "Respuesta 2", "Respuesta 3", "Respuesta 4"),
-                        imageRes = R.drawable.btn_abecedario_continuar,
-                        onRespuestaClick = { },
-                        onContinuar = {
-                            nav.popBackStack(Route.InsideModule.route, inclusive = false)
-                        }
-                    )
-                }
+// Los composables Route.LessonPractice y Route.LessonQuestion deben ser eliminados
+// o comentados de aquí si no quieres que sean navegables directamente.
 
                 // --------- opciones de perfil ---------
                 composable(Route.ProfileEditPhoto.route) {

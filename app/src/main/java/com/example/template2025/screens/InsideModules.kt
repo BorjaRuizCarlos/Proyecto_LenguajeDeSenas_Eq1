@@ -70,16 +70,16 @@ fun InsideModulesScreen(
 
             // ---------- LISTA DE LECCIONES ----------
             LazyColumn(
-                verticalArrangement = Arrangement.spacedBy(16.dp),
-                modifier = Modifier.fillMaxSize()
+                // ...
             ) {
                 itemsIndexed(lessons) { index, lesson ->
                     LessonCard(
                         lesson = lesson,
                         onClick = {
                             val currentModuleId = moduleId ?: 0
+                            // *** CAMBIAR ESTO ***
                             navController.navigate(
-                                Route.LessonPractice.createRoute(
+                                Route.LessonsContent.createRoute( // <<< Usar la nueva ruta
                                     moduleId = currentModuleId,
                                     lessonId = index
                                 )

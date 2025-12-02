@@ -43,4 +43,9 @@ sealed class Route(val route: String) {
     data object ProfileEditPhoto : Route("profile_edit_photo")
     data object ProfileNotifications : Route("profile_notifications")
     data object ProfilePrivacy : Route("profile_privacy")
+
+    //Ruta de Lessons content
+    object LessonsContent : Route("lessonsContent/{moduleId}/{lessonId}") {
+        fun createRoute(moduleId: Int, lessonId: Int) = "lessonsContent/$moduleId/$lessonId"
+    }
 }

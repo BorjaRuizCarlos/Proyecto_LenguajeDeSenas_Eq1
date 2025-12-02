@@ -2,6 +2,7 @@
 
 package com.example.template2025.screens
 
+import LessonFlowViewModel
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -28,7 +29,66 @@ import com.example.template2025.ui.theme.Template2025Theme
 /* ---------------------------------------------------------------- */
 /*  PANTALLA 1: PRÁCTICA DE LETRA / PALABRA (solo botón Continuar)  */
 /* ---------------------------------------------------------------- */
+// LessonsContentScreen.kt (en el mismo paquete de tus screens)
 
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
+import com.example.template2025.navigation.Route
+
+// ... (Tus imports)
+
+@Composable
+fun LessonsContentScreen(
+    navController: NavController,
+    moduleId: Int?,
+    lessonId: Int?,
+    viewModel: LessonFlowViewModel = viewModel() // Usa el ViewModel
+) {
+    // Observa el estado del flujo de la lección
+    val flowState by viewModel.currentFlowState.collectAsState()
+
+    // Maneja la navegación y el contenido basado en el estado
+    when (flowState) {
+        is LessonFlowViewModel.LessonFlowState.Practice -> {
+            val step = (flowState as LessonFlowViewModel.LessonFlowState.Practice).step
+            // Aquí simulas la conversión de URL a un recurso Drawable, que necesitarás implementar
+            // Como no tenemos el mecanismo real para URL -> Drawable en este ejemplo,
+            // usamos un placeholder.
+            val imageRes = R.drawable.btn_abecedario_continuar
+
+            PracticaLetraScreen(
+                titulo = step.title,
+                imageRes = imageRes,
+                onContinuar = {
+                    viewModel.nextStep() // Avanza a la pantalla de Pregunta
+                }
+            )
+        }
+        is LessonFlowViewModel.LessonFlowState.Question -> {
+            val state = (flowState as LessonFlowViewModel.LessonFlowState.Question)
+            val imageRes = R.drawable.btn_abecedario_continuar
+
+            PreguntaLeccionScreen(
+                pregunta = "¿Qué significa la seña de: ${state.step.title}?",
+                respuestas = state.answers,
+                imageRes = imageRes,
+                onRespuestaClick = { selectedIndex ->
+                    // Lógica para marcar la respuesta (no implementada aquí)
+                },
+                onContinuar = {
+                    viewModel.nextStep() // Avanza a la Practica del siguiente elemento
+                }
+            )
+        }
+        LessonFlowViewModel.LessonFlowState.Finished -> {
+            // La lección ha terminado, navega de vuelta a InsideModulesScreen
+            navController.popBackStack(Route.InsideModule.route, inclusive = false)
+            // O podrías navegar a una pantalla de felicitación
+        }
+    }
+}
 @Composable
 fun PracticaLetraScreen(
     titulo: String,
