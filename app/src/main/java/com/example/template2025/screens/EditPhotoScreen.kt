@@ -1,10 +1,19 @@
 package com.example.template2025.screens
 
+import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -28,9 +37,32 @@ import com.example.template2025.R
 import com.example.template2025.ui.theme.Template2025Theme
 import com.example.template2025.viewModel.ProfileViewModel
 
+/**
+ * El Composable "inteligente" que se conecta con el ViewModel.
+ */
 @Composable
 fun EditPhotoScreen(
     profileViewModel: ProfileViewModel,
+    onBack: () -> Unit
+) {
+    // Llama al Composable "tonto" que solo se encarga de la UI
+    EditPhotoScreenContent(
+        initialAvatar = profileViewModel.selectedAvatarResId.value,
+        onSave = { newAvatarResId ->
+            profileViewModel.updateAvatar(newAvatarResId)
+            onBack()
+        },
+        onBack = onBack
+    )
+}
+
+/**
+ * El Composable "tonto" que solo muestra la UI y no sabe nada del ViewModel.
+ */
+@Composable
+fun EditPhotoScreenContent(
+    @DrawableRes initialAvatar: Int,
+    onSave: (newAvatarResId: Int) -> Unit,
     onBack: () -> Unit
 ) {
     // 4 opciones precargadas (pon aquí tus drawables reales)
@@ -41,9 +73,9 @@ fun EditPhotoScreen(
         R.drawable.avatar_4
     )
 
-    // avatar seleccionado (inicialmente el del ViewModel)
+    // Estado interno para el avatar seleccionado
     var selectedAvatar by remember {
-        mutableStateOf(profileViewModel.selectedAvatarResId.value)
+        mutableStateOf(initialAvatar)
     }
 
     Column(
@@ -128,8 +160,7 @@ fun EditPhotoScreen(
 
         Button(
             onClick = {
-                profileViewModel.updateAvatar(selectedAvatar)
-                onBack()
+                onSave(selectedAvatar) // Llama al lambda con el avatar seleccionado
             },
             colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF21409A)),
             modifier = Modifier.fillMaxWidth(0.7f)
@@ -177,11 +208,15 @@ private fun AvatarOption(
     }
 }
 
-@Preview(showBackground = true, showSystemUi = true)
+@Preview(showBackground = true)
 @Composable
 fun EditPhotoScreenPreview() {
     Template2025Theme {
-        val vm = ProfileViewModel()
-        EditPhotoScreen(profileViewModel = vm, onBack = {})
+        // El preview ahora llama al Composable "tonto" con datos de ejemplo
+        EditPhotoScreenContent(
+            initialAvatar = R.drawable.avatar_1,
+            onSave = {},
+            onBack = {}
+        )
     }
 }

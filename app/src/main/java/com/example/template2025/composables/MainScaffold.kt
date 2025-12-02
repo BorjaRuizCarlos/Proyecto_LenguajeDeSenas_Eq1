@@ -22,12 +22,17 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
+import androidx.navigation.NavGraphBuilder
+import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import androidx.navigation.navigation
 import com.example.template2025.R
+import com.example.template2025.data.api.ApiService
 import com.example.template2025.dataStore.DataStore
 import com.example.template2025.dataStore.TokenStore
 import com.example.template2025.navigation.Route
@@ -35,6 +40,7 @@ import com.example.template2025.screens.*
 import com.example.template2025.ui.theme.BlueLight
 import com.example.template2025.ui.theme.Template2025Theme
 import com.example.template2025.viewModel.ProfileViewModel
+import com.example.template2025.viewModel.ProfileViewModelFactory
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -90,7 +96,7 @@ fun MainScaffold(
                             scope.launch { drawerState.close() }
                         }
                         DrawerTextItem("Mi Cuenta", Icons.Filled.Person) {
-                            nav.navigate(Route.Profile.route)
+                            nav.navigate(Route.ProfileGraph.route) // Navega al grafo de perfil
                             scope.launch { drawerState.close() }
                         }
                     }
@@ -156,13 +162,8 @@ fun MainScaffold(
                     HomeScreen(navController = nav, token = safeToken)
                 }
 
-                // PERFIL
-                composable(Route.Profile.route) {
-                    ProfileScreen(
-                        navController = nav,
-                        token = safeToken
-                    )
-                }
+                // GRAFO DE PERFIL (Nuevo)
+                profileGraph(navController = nav, token = safeToken)
 
                 // AJUSTES
                 composable(Route.Settings.route) {
@@ -210,6 +211,47 @@ fun MainScaffold(
                 }
             }
         }
+    }
+}
+
+// Función para el grafo de navegación de perfil
+fun NavGraphBuilder.profileGraph(navController: NavHostController, token: String?) {
+    navigation(startDestination = Route.Profile.route, route = Route.ProfileGraph.route) {
+
+        composable(Route.Profile.route) { backStackEntry ->
+            val parentEntry = remember(backStackEntry) {
+                navController.getBackStackEntry(Route.ProfileGraph.route)
+            }
+            val apiService = remember { ApiService.RetrofitClient.apiService }
+            val profileViewModel: ProfileViewModel = viewModel(
+                viewModelStoreOwner = parentEntry,
+                factory = ProfileViewModelFactory(apiService)
+            )
+            
+            ProfileScreen(
+                navController = navController,
+                token = token,
+                profileViewModel = profileViewModel // Pasamos el VM compartido
+            )
+        }
+        
+        composable(Route.ProfileEditPhoto.route) { backStackEntry ->
+            val parentEntry = remember(backStackEntry) {
+                navController.getBackStackEntry(Route.ProfileGraph.route)
+            }
+            val apiService = remember { ApiService.RetrofitClient.apiService }
+            val profileViewModel: ProfileViewModel = viewModel(
+                viewModelStoreOwner = parentEntry,
+                factory = ProfileViewModelFactory(apiService)
+            )
+
+            EditPhotoScreen(
+                profileViewModel = profileViewModel, // Pasamos la instancia compartida
+                onBack = { navController.popBackStack() }
+            )
+        }
+        // Aquí podrías añadir otras pantallas que compartan el mismo ViewModel
+        // composable(Route.ProfileNotifications.route) { ... }
     }
 }
 
