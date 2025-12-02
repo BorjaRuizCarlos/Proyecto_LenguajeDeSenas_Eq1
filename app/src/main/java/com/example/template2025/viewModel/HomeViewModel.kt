@@ -84,9 +84,15 @@ private fun HomeResponse.toAppData(): AppData {
         Mission("Misión 3", this.mision3 ?: 0, 50),
     )
 
+    // Progreso viene como Double (decimal) del backend
+    // Lo limitamos entre 0 y 100 y luego lo convertimos a Int para la UI
+    val progresoGeneralInt: Int = ((this.progreso ?: 0.0)
+        .coerceIn(0.0, 100.0))
+        .toInt()
+
     val generalProgress = Mission(
         name = "Progreso General",
-        current = this.progreso ?: 0,
+        current = progresoGeneralInt,
         max = 100
     )
 
