@@ -18,20 +18,40 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import com.example.template2025.ui.theme.Template2025Theme
-import com.example.template2025.viewModel.ProfileViewModel
 
 @Composable
 fun SettingsScreen(
-    profileViewModel: ProfileViewModel,
-    onBack: () -> Unit
+    navController: NavController,
+    token: String? // 🔹 Recibe el token
 ) {
-    // estados locales inicializados con el valor actual del ViewModel
-    var username by remember { mutableStateOf(profileViewModel.username.value) }
-    var bio by remember { mutableStateOf(profileViewModel.bio.value) }
+    // Si no hay token, no mostramos el contenido principal
+    if (token.isNullOrBlank()) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color(0xFFE6F0F8)),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = "No se encontró token.\nVuelve a iniciar sesión.",
+                color = Color(0xFF21409A),
+                fontWeight = FontWeight.SemiBold,
+                textAlign = TextAlign.Center
+            )
+        }
+        return
+    }
+
+    // estados locales (por ahora no dependen de un ViewModel)
+    var username by remember { mutableStateOf("Usuario de prueba") }
+    var bio by remember { mutableStateOf("Bio de prueba para ajustes") }
 
     Box(
         modifier = Modifier
@@ -101,9 +121,8 @@ fun SettingsScreen(
             // Botón guardar
             Button(
                 onClick = {
-                    profileViewModel.updateUsername(username)
-                    profileViewModel.updateBio(bio)
-                    onBack()
+                    // Aquí iría la lógica para guardar los datos en el ViewModel/API
+                    navController.popBackStack()
                 },
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF21409A)),
                 modifier = Modifier.fillMaxWidth(0.7f)
@@ -115,7 +134,7 @@ fun SettingsScreen(
 
             // Botón volver sin guardar
             Button(
-                onClick = { onBack() },
+                onClick = { navController.popBackStack() },
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF18379A)),
                 modifier = Modifier.fillMaxWidth(0.5f)
             ) {
@@ -125,12 +144,11 @@ fun SettingsScreen(
     }
 }
 
-/* Preview independiente (usa un VM local) */
+
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun SettingsScreenPreview() {
     Template2025Theme {
-        val vm = ProfileViewModel()
-        SettingsScreen(profileViewModel = vm, onBack = {})
+        SettingsScreen(navController = rememberNavController(), token = "fake_token_for_preview")
     }
 }

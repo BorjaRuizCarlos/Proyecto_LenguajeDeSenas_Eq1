@@ -1,6 +1,7 @@
 // ApiService.kt
 package com.example.template2025.data.api
 
+import com.example.template2025.viewModel.UserProfile
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Response
@@ -18,11 +19,16 @@ interface ApiService {
     @POST("auth/login")
     suspend fun login(@Body body: LoginRequest): Response<LoginResponse>
 
-    // 👇 Ahora recibe el header Authorization
     @GET("api/home")
     suspend fun getHomeData(
         @Header("Authorization") authorization: String
     ): Response<HomeResponse>
+
+    // 👇 FUNCIÓN AÑADIDA
+    @GET("profile/me")
+    suspend fun getProfile(
+        @Header("Authorization") authorization: String
+    ): Response<UserProfile>
 
     companion object {
         fun create(baseUrl: String): ApiService {
@@ -58,4 +64,3 @@ interface ApiService {
         }
     }
 }
-
