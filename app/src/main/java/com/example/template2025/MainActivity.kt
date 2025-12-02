@@ -1,6 +1,5 @@
 package com.example.template2025
 
-import android.R.attr.name
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -10,9 +9,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -40,23 +37,22 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             Template2025Theme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    AppRoot(
-                        modifier = Modifier.padding(innerPadding)
-                    )
-                }
+                AppRoot()
             }
         }
     }
 }
-@Preview
+
 @Composable
 fun AppRoot(modifier: Modifier = Modifier) {
-
     val vm: AppViewModel = viewModel()
     val nav = rememberNavController()
 
-    NavHost(navController = nav, startDestination = Route.Splash.route) {
+    NavHost(
+        navController = nav,
+        startDestination = Route.Splash.route,
+        modifier = modifier.fillMaxSize()
+    ) {
         composable(Route.Splash.route) {
             SplashScreen(
                 vm = vm,
@@ -64,7 +60,7 @@ fun AppRoot(modifier: Modifier = Modifier) {
             )
         }
 
-        // AUTH FLOW (sin Drawer/BottomBar)
+        // AUTH FLOW (sin Drawer)
         composable(Route.Auth.route) {
             AuthNavHost(
                 onLoggedIn = {
@@ -77,17 +73,18 @@ fun AppRoot(modifier: Modifier = Modifier) {
             )
         }
 
-        // MAIN FLOW (con Scaffold + Drawer + BottomBar)
+        // MAIN FLOW (con Drawer / Scaffold)
         composable(Route.Main.route) {
             MainScaffold(
                 onLogoutClick = { vm.logout() },
                 onNavigateToAuth = {
-                    nav.navigate(Route.Auth.route) { popUpTo(0) } // limpia back stack
+                    nav.navigate(Route.Auth.route) {
+                        popUpTo(0)    // limpia el back stack
+                    }
                 }
             )
         }
     }
-
 }
 
 @Composable
@@ -96,7 +93,7 @@ fun AuthNavHost(onLoggedIn: () -> Unit) {
     NavHost(navController = nav, startDestination = Route.Login.route) {
         composable(Route.Login.route) {
             LoginScreen(
-                onLoginOk = { onLoggedIn() },                  // ← renombrado
+                onLoginOk = { onLoggedIn() },
                 onGoToRegister = { nav.navigate(Route.Register.route) }
             )
         }
@@ -108,7 +105,6 @@ fun AuthNavHost(onLoggedIn: () -> Unit) {
             )
         }
     }
-
 }
 
 @Composable
@@ -135,5 +131,13 @@ fun SplashScreen(vm: AppViewModel, nav: NavHostController) {
             Spacer(Modifier.height(12.dp))
             Text("Cargando...")
         }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun PreviewRoot() {
+    Template2025Theme {
+        AppRoot()
     }
 }

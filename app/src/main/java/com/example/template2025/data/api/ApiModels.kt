@@ -18,10 +18,8 @@ data class LoginRequest(
     val contrasena: String
 )
 
-data class LoginResponse(
-    val access_token: String,
-    val token_type: String = "bearer"
-)
+
+
 // ApiModels.kt (package com.example.template2025.data.api)
 // ... (Tus clases SignupRequest, SignupResponse, LoginRequest, LoginResponse)
 

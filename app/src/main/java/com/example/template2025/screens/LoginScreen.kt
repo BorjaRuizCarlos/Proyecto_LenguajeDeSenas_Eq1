@@ -41,10 +41,13 @@ fun LoginScreen(
     val snack = remember { SnackbarHostState() }
     val context = LocalContext.current
 
-    // ✅ Cuando el login marca success: guardamos el token y el flag logged_in
+    // Cuando el login es success -> guardar token + logged_in
     LaunchedEffect(login.success) {
         if (login.success) {
-            val token = login.accessToken        // 👈 nombre correcto
+            val token = login.accessToken
+
+            // Debug rápido
+            println("LOGIN TOKEN = $token")
 
             if (!token.isNullOrBlank()) {
                 TokenStore.saveToken(context, token)
@@ -57,7 +60,7 @@ fun LoginScreen(
         }
     }
 
-    // Errores de login
+    // Errores
     LaunchedEffect(login.error) {
         login.error?.let {
             snack.showSnackbar(it)
@@ -86,7 +89,6 @@ fun LoginScreen(
                 .background(BlueLight)
                 .padding(padding)
         ) {
-            // Marca de agua
             SillaDeRuedas(
                 resId = R.drawable.ruedas,
                 size = 350.dp,
@@ -97,26 +99,15 @@ fun LoginScreen(
                 offsetY = 10.dp
             )
 
-            // Contenido
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(
-                        start = 20.dp,
-                        top = 45.dp,
-                        end = 20.dp,
-                        bottom = 32.dp
-                    )
+                    .padding(start = 20.dp, top = 45.dp, end = 20.dp, bottom = 32.dp)
                     .verticalScroll(rememberScrollState())
                     .imePadding(),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text(
-                    "INCLUSIÓN",
-                    color = BlueDark,
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Bold
-                )
+                Text("INCLUSIÓN", color = BlueDark, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                 Spacer(Modifier.height(10.dp))
                 Text(
                     "Iniciar sesión",
@@ -127,7 +118,6 @@ fun LoginScreen(
                 )
                 Spacer(Modifier.height(28.dp))
 
-                // Email / usuario
                 GlassOutlinedField(
                     value = email,
                     onValueChange = { email = it },
@@ -137,7 +127,6 @@ fun LoginScreen(
 
                 Spacer(Modifier.height(14.dp))
 
-                // Contraseña
                 GlassOutlinedField(
                     value = pass,
                     onValueChange = { pass = it },

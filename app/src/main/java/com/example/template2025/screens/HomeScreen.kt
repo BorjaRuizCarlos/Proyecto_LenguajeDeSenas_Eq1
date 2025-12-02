@@ -1,447 +1,498 @@
-    package com.example.template2025.screens // Asumiendo este es tu paquete de pantallas
+package com.example.template2025.screens
 
-    import HomeViewModel
-    import androidx.compose.foundation.Image
-    import androidx.compose.foundation.background
-    import androidx.compose.foundation.layout.Arrangement
-    import androidx.compose.foundation.layout.Box
-    import androidx.compose.foundation.layout.Column
-    import com.example.template2025.R
-    import androidx.compose.foundation.layout.Row
-    import androidx.compose.foundation.layout.Spacer
-    import androidx.compose.foundation.layout.fillMaxHeight
-    import androidx.compose.foundation.layout.fillMaxSize
-    import androidx.compose.foundation.layout.fillMaxWidth
-    import androidx.compose.foundation.layout.height
-    import androidx.compose.foundation.layout.padding
-    import androidx.compose.foundation.layout.size
-    import androidx.compose.foundation.layout.width
-    import androidx.compose.foundation.shape.RoundedCornerShape
-    import androidx.compose.material3.Card
-    import androidx.compose.material3.CardDefaults
-    import androidx.compose.material3.CircularProgressIndicator
-    import androidx.compose.material3.Icon
-    import androidx.compose.material3.MaterialTheme
-    import androidx.compose.material3.Text
-    import androidx.compose.foundation.clickable
-    import androidx.compose.foundation.layout.offset
-    // ... otras importaciones
-    import androidx.compose.runtime.Composable
-    import androidx.compose.runtime.collectAsState
-    import androidx.compose.ui.Alignment
-    import androidx.compose.ui.Modifier
-    import androidx.compose.ui.draw.clip
-    import androidx.compose.ui.graphics.Color
-    import androidx.compose.ui.res.painterResource
-    import androidx.compose.ui.text.font.FontWeight
-    import androidx.compose.ui.tooling.preview.Preview
-    import androidx.compose.ui.unit.dp
-    import androidx.compose.ui.unit.sp
-    import androidx.lifecycle.viewmodel.compose.viewModel
-    import androidx.navigation.NavController
-    import com.example.template2025.navigation.Route
-    import androidx.compose.runtime.collectAsState
-    import androidx.compose.runtime.getValue
-    // HomeViewModelFactory.kt (en presentation.home o similar)
-    import androidx.lifecycle.ViewModel
-    import androidx.lifecycle.ViewModelProvider
-    import com.example.template2025.data.api.ApiService
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
+import com.example.template2025.R
+import com.example.template2025.data.api.ApiService
+import com.example.template2025.navigation.Route
+import com.example.template2025.viewModel.HomeUiState
+import com.example.template2025.viewModel.HomeViewModel
 
-    class HomeViewModelFactory(
-        private val apiService: ApiService // <<-- La dependencia que se inyecta
-    ) : ViewModelProvider.Factory {
-
-        // Sobrescribe el método create para instanciar tu ViewModel
-        override fun <T : ViewModel> create(modelClass: Class<T>): T {
-            if (modelClass.isAssignableFrom(HomeViewModel::class.java)) {
-                @Suppress("UNCHECKED_CAST")
-                // Creamos la instancia de HomeViewModel y le pasamos el ApiService
-                return HomeViewModel(apiService) as T
-            }
-            throw IllegalArgumentException("Unknown ViewModel class")
+// =====================================================================
+// FACTORY para HomeViewModel
+// =====================================================================
+class HomeViewModelFactory(
+    private val apiService: ApiService
+) : ViewModelProvider.Factory {
+    override fun <T : ViewModel> create(modelClass: Class<T>): T {
+        if (modelClass.isAssignableFrom(HomeViewModel::class.java)) {
+            @Suppress("UNCHECKED_CAST")
+            return HomeViewModel(apiService) as T
         }
+        throw IllegalArgumentException("Unknown ViewModel class")
     }
+}
 
+// =====================================================================
+// DATA CLASSES PARA LA UI
+// =====================================================================
+data class DayProgress(val day: String, val completed: Boolean)
+data class Mission(val name: String, val current: Int, val max: Int)
+data class Module(val name: String, val current: Int, val max: Int)
+val CardBackgroundColor = Color(0xDFF0FFFF)
 
-    // ... otras importaciones
+data class AppData(
+    val dailyProgress: List<DayProgress>,
+    val dailyMissions: List<Mission>,
+    val generalProgress: Mission,
+    val streakDays: Int,
+    val lessons: List<Module>
+)
 
-
-
-    // =================================================================
-    // ESTRUCTURAS DE DATOS (Las mantienes aquí o en un archivo de modelos)
-    // =================================================================
-    data class DayProgress(val day: String, val completed: Boolean)
-    data class Mission(val name: String, val current: Int, val max: Int)
-    data class Module(val name: String, val current: Int, val max: Int)
-    val CardBackgroundColor = Color(0xDFF0FFFF)
-    data class AppData(
-        val dailyProgress: List<DayProgress>,
-        val dailyMissions: List<Mission>,
-        val generalProgress: Mission,
-        val streakDays: Int,
-        val lessons: List<Module>
+// Datos fake SOLO para el preview
+fun getFakeApiData(): AppData = AppData(
+    dailyProgress = listOf(
+        DayProgress("L", true),
+        DayProgress("M", true),
+        DayProgress("M", true),
+        DayProgress("J", true),
+        DayProgress("V", false),
+        DayProgress("S", false),
+        DayProgress("D", false)
+    ),
+    dailyMissions = listOf(
+        Mission("Misión 1", 43, 50),
+        Mission("Misión 2", 42, 50),
+        Mission("Misión 3", 41, 50)
+    ),
+    generalProgress = Mission("Progreso General", 30, 100),
+    streakDays = 7,
+    lessons = listOf(
+        Module("Módulo 1", 43, 50),
+        Module("Módulo 2", 41, 50),
+        Module("Módulo 3", 41, 50)
     )
+)
 
-    // Simulación de los datos que recibirías de la API
-    fun getFakeApiData(): AppData {
-        return AppData(
-            dailyProgress = listOf(
-                DayProgress("L", true),
-                DayProgress("M", true),
-                DayProgress("M", true),
-                DayProgress("J", true),
-                DayProgress("V", false),
-                DayProgress("S", false),
-                DayProgress("D", false)
-            ),
-            dailyMissions = listOf(
-                Mission("Misión 1", 43, 50),
-                Mission("Misión 2", 42, 50),
-                Mission("Misión 3", 41, 50)
-            ),
-            generalProgress = Mission("Progreso General", 30, 100),
-            streakDays = 7,
-            lessons = listOf(
-                Module("Módulo 1", 43, 50),
-                Module("Módulo 2", 41, 50),
-                Module("Módulo 3", 41, 50)
-            )
-        )
-    }
+// =====================================================================
+// PREVIEW (usa sólo datos fake)
+// =====================================================================
+@Preview(showBackground = true)
+@Composable
+fun HomeScreenPreview() {
+    val appData = getFakeApiData()
+    HomeScreenContent(
+        appData = appData,
+        token = "TOKEN_DE_PREVIEW_123",
+        onNavigateToDailyQuests = {}
+    )
+}
 
-    // =================================================================
-    // COMPOSABLE DE LA PANTALLA
-    // =================================================================
-
-    /**
-     * ESTE ES EL COMPOSABLE QUE SE LLAMA EN TU NAVHOST.
-     * Contiene el contenido de la pantalla Home sin el Scaffold.
-     */
-    @Preview(showBackground = true)
-    @Composable
-    fun HomeScreenPreview() {
-        val appData = getFakeApiData()
-        // Una versión de preview simple sin navegación real
-        HomeScreenContent(appData = appData, onNavigateToDailyQuests = {})
-    }
-
-    @Composable
-    fun HomeScreen(
-        navController: NavController,
-        // El ViewModel se inyecta o crea automáticamente por Compose
-        viewModel: HomeViewModel = viewModel(factory = HomeViewModelFactory(apiService = ApiService.RetrofitClient.apiService))
-    ) {
-        // Observa el estado del ViewModel
-        val uiState by viewModel.uiState.collectAsState()
-
-        // Manejo de los estados (Loading, Error, Success)
-        when (uiState) {
-            is HomeUiState.Loading -> {
-                // Mostrar un indicador de carga centrado
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    CircularProgressIndicator()
-                }
-            }
-            is HomeUiState.Error -> {
-                // Mostrar un mensaje de error
-                val message = (uiState as HomeUiState.Error).message
-                Box(
-                    modifier = Modifier.fillMaxSize().padding(16.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(text = "Error: $message", color = MaterialTheme.colorScheme.error)
-                }
-            }
-            is HomeUiState.Success -> {
-                val appData = (uiState as HomeUiState.Success).appData
-                // Cargar el contenido de la pantalla con los datos del API
-                HomeScreenContent(
-                    appData = appData,
-                    onNavigateToDailyQuests = {
-                        navController.navigate(Route.DailyQuests.route)
-                    }
-                )
-            }
-        }
-    }
-
-    @Composable
-    fun ModuleProgressBar(module: Module) {
-        val progress = module.current / module.max.toFloat()
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(text = module.name,color=  Color(0xFF244984), modifier = Modifier.width(80.dp),fontWeight = FontWeight.Bold)
-            Spacer(modifier = Modifier.width(8.dp))
-            Box(
-                modifier = Modifier
-                    .weight(1f) // Ocupa el ancho restante
-                    .height(24.dp)
-                    .clip(RoundedCornerShape(4.dp))
-                    .background(Color.LightGray.copy(alpha = 0.3f))
-            ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxHeight()
-                        .fillMaxWidth(progress)
-                        .background(MaterialTheme.colorScheme.primary)
-                )
-                Text(
-                    text = "${module.current}/${module.max}",
-                    color = Color.White,
-                    fontSize = 12.sp,
-                    modifier = Modifier.align(Alignment.Center)
-                )
-            }
-        }
-    }
-
-    @Composable
-    fun MissionProgressBar(mission: Mission) {
-        val progress = mission.current / mission.max.toFloat()
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(text = mission.name,color=  Color(0xFF244984), fontSize = 12.sp, modifier = Modifier.padding(top = 4.dp),fontWeight = FontWeight.Bold)
-            Spacer(modifier = Modifier.height(8.dp))
-            Box(
-                modifier = Modifier
-                    .width(80.dp) // Ancho fijo para las barras pequeñas
-                    .height(24.dp)
-                    .clip(RoundedCornerShape(4.dp))
-                    .background(Color.LightGray.copy(alpha = 0.3f))
-            ) {
-
-                Box(
-                    modifier = Modifier
-                        .fillMaxHeight()
-                        .fillMaxWidth(progress)
-                        .background(MaterialTheme.colorScheme.primary)
-                )
-                Text(
-                    text = "${mission.current}/${mission.max}",
-                    color = Color.White,
-                    fontSize = 12.sp,
-                    modifier = Modifier.align(Alignment.Center)
-                )
-
-            }
-
-        }
-    }
-
-    // ... (Asegúrate de incluir las definiciones de MissionProgressBar y ModuleProgressBar)
-    // @Composable fun ModuleProgressBar(...) // Debe estar definida aquí o en un archivo de utilidades
-    // @Composable fun MissionProgressBar(...) // Debe estar definida aquí o en un archivo de utilidades
-    // ... (Tus imports, data classes, y funciones MissionProgressBar, ModuleProgressBar permanecen iguales)
-
-    @Composable
-    fun HomeScreenContent(
-        appData: AppData,
-        onNavigateToDailyQuests: () -> Unit // <--- Nuevo parámetro
-    ) {
-        // 1. Usar un Box para apilar el fondo (squibbles) y el contenido (Column)
+// =====================================================================
+// HOME SCREEN: recibe token desde MainScaffold
+// =====================================================================
+@Composable
+fun HomeScreen(
+    navController: NavController,
+    token: String?
+) {
+    // Si no hay token, avisamos y NO llamamos a la API
+    if (token.isNullOrBlank()) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color(0xB2CAF5FF)) // Fondo suave
+                .background(Color(0xB2CAF5FF)),
+            contentAlignment = Alignment.Center
         ) {
-
-            // ===================================
-            // SQUIBBLES DE FONDO (Capas inferiores)
-            // ===================================
-            // Squibble 1 (La forma en la esquina inferior derecha)
-            Image(
-                painter = painterResource(id = R.drawable.squibble_1), // ¡Asegúrate de que este recurso exista!
-                contentDescription = null,
-                // Posicionarlo en la esquina inferior derecha o similar
-                modifier = Modifier
-                    .align(Alignment.BottomEnd)
-                    .size(850.dp) // Tamaño ajustado
-                    .offset(x = 0.dp, y = 30.dp) // Empujarlo ligeramente fuera para el efecto de borde
+            Text(
+                text = "No se encontró token.\nVuelve a iniciar sesión.",
+                color = Color(0xFF244984),
+                fontWeight = FontWeight.SemiBold
             )
+        }
+        return
+    }
 
-            // Squibble 2 (La forma en la esquina superior izquierda)
-            Image(
-                painter = painterResource(id = R.drawable.squibble_2), // ¡Asegúrate de que este recurso exista!
-                contentDescription = null,
-                // Posicionarlo en la esquina superior izquierda o similar
-                modifier = Modifier
-                    .align(Alignment.TopStart)
-                    .size(800.dp) // Tamaño ajustado
-                    .offset(x = (0).dp, y = (100).dp) // Empujarlo ligeramente fuera
-            )
+    val apiService = remember { ApiService.RetrofitClient.apiService }
 
-            // Squibble 3 (La forma larga y horizontal, debajo del progreso semanal)
-            Image(
-                painter = painterResource(id = R.drawable.squibble_3), // ¡Asegúrate de que este recurso exista!
-                contentDescription = null,
-                // Centrarlo horizontalmente, y colocarlo en la parte superior.
-                modifier = Modifier
-                    .align(Alignment.TopCenter)
-                    .fillMaxWidth()
-                    .height(80.dp) // Altura ajustada
-                    .offset(y = 0.dp) // Moverlo hacia abajo para que quede debajo del encabezado
-            )
+    val homeViewModel: HomeViewModel = viewModel(
+        factory = HomeViewModelFactory(apiService)
+    )
 
-            // ===================================
-            // CONTENIDO PRINCIPAL (Capa superior)
-            // ===================================
-            // El contenido de tu pantalla debe ir en una columna encima de los squibbles
-            Column(
+    // Llamamos al backend cada vez que cambie el token
+    LaunchedEffect(token) {
+        homeViewModel.fetchHomeData(token)
+    }
+
+    val uiState by homeViewModel.uiState.collectAsState()
+
+    when (uiState) {
+        is HomeUiState.Loading -> {
+            Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(16.dp) // Padding para todo el contenido
+                    .background(Color(0xB2CAF5FF)),
+                contentAlignment = Alignment.Center
             ) {
-                // Sección 1: Progreso Semanal (Tu código existente)
-                Text(
-                    text = "¡Bienvenido de vuelta!",
-                    color=  Color(0xFF244984),
-                    fontSize = 24.sp,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(bottom = 16.dp)
-                )
+                CircularProgressIndicator()
+            }
+        }
 
-                // ... (Resto de tu código para el Progreso Semanal)
+        is HomeUiState.Error -> {
+            val message = (uiState as HomeUiState.Error).message
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color(0xB2CAF5FF))
+                    .padding(16.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "Error al cargar home:\n$message",
+                    color = MaterialTheme.colorScheme.error,
+                    fontWeight = FontWeight.SemiBold
+                )
+            }
+        }
+
+        is HomeUiState.Success -> {
+            val appData = (uiState as HomeUiState.Success).appData
+            HomeScreenContent(
+                appData = appData,
+                token = token,
+                onNavigateToDailyQuests = {
+                    navController.navigate(Route.DailyQuests.route)
+                }
+            )
+        }
+    }
+}
+
+// =====================================================================
+// COMPONENTE DE PROGRESO POR MÓDULO
+// =====================================================================
+@Composable
+fun ModuleProgressBar(module: Module) {
+    val progress = module.current / module.max.toFloat()
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = module.name,
+            color = Color(0xFF244984),
+            modifier = Modifier.width(80.dp),
+            fontWeight = FontWeight.Bold
+        )
+        Spacer(modifier = Modifier.width(8.dp))
+        Box(
+            modifier = Modifier
+                .weight(1f)
+                .height(24.dp)
+                .clip(RoundedCornerShape(4.dp))
+                .background(Color.LightGray.copy(alpha = 0.3f))
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .fillMaxWidth(progress)
+                    .background(MaterialTheme.colorScheme.primary)
+            )
+            Text(
+                text = "${module.current}/${module.max}",
+                color = Color.White,
+                fontSize = 12.sp,
+                modifier = Modifier.align(Alignment.Center)
+            )
+        }
+    }
+}
+
+// =====================================================================
+// COMPONENTE DE PROGRESO POR MISIÓN
+// =====================================================================
+@Composable
+fun MissionProgressBar(mission: Mission) {
+    val progress = mission.current / mission.max.toFloat()
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(
+            text = mission.name,
+            color = Color(0xFF244984),
+            fontSize = 12.sp,
+            modifier = Modifier.padding(top = 4.dp),
+            fontWeight = FontWeight.Bold
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        Box(
+            modifier = Modifier
+                .width(80.dp)
+                .height(24.dp)
+                .clip(RoundedCornerShape(4.dp))
+                .background(Color.LightGray.copy(alpha = 0.3f))
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .fillMaxWidth(progress)
+                    .background(MaterialTheme.colorScheme.primary)
+            )
+            Text(
+                text = "${mission.current}/${mission.max}",
+                color = Color.White,
+                fontSize = 12.sp,
+                modifier = Modifier.align(Alignment.Center)
+            )
+        }
+    }
+}
+
+// =====================================================================
+// CONTENIDO COMPLETO DEL HOME
+// =====================================================================
+@Composable
+fun HomeScreenContent(
+    appData: AppData,
+    token: String?,
+    onNavigateToDailyQuests: () -> Unit
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xB2CAF5FF))
+    ) {
+
+        // Squibbles de fondo
+        Image(
+            painter = painterResource(id = R.drawable.squibble_1),
+            contentDescription = null,
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .size(850.dp)
+                .offset(x = 0.dp, y = 30.dp)
+        )
+
+        Image(
+            painter = painterResource(id = R.drawable.squibble_2),
+            contentDescription = null,
+            modifier = Modifier
+                .align(Alignment.TopStart)
+                .size(800.dp)
+                .offset(x = 0.dp, y = 100.dp)
+        )
+
+        Image(
+            painter = painterResource(id = R.drawable.squibble_3),
+            contentDescription = null,
+            modifier = Modifier
+                .align(Alignment.TopCenter)
+                .fillMaxWidth()
+                .height(80.dp)
+        )
+
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp)
+        ) {
+            // Tarjeta para ver token actual
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 12.dp),
+                shape = RoundedCornerShape(10.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = Color(0xFFE3F2FD)
+                ),
+                elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
+                border = CardDefaults.outlinedCardBorder()
+            ) {
+                Column(
+                    modifier = Modifier.padding(12.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    Text(
+                        text = "Token actual:",
+                        color = Color(0xFF244984),
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 14.sp
+                    )
+                    Text(
+                        text = when {
+                            token.isNullOrBlank() ->
+                                "Sin token (no loggeado o aún cargando)."
+                            else ->
+                                token.take(80) + if (token.length > 80) "..." else ""
+                        },
+                        color = Color(0xFF244984),
+                        fontSize = 12.sp
+                    )
+                }
+            }
+
+            // ¡Bienvenida!
+            Text(
+                text = "¡Bienvenido de vuelta!",
+                color = Color(0xFF244984),
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(bottom = 16.dp)
+            )
+
+            // Progreso semanal
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp),
+                horizontalArrangement = Arrangement.SpaceAround,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                appData.dailyProgress.forEach { dayProgress ->
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(
+                            text = dayProgress.day,
+                            color = Color(0xFF244984),
+                            fontSize = 12.sp
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Image(
+                            painter = painterResource(
+                                id = if (dayProgress.completed)
+                                    R.drawable.ic_character_completed
+                                else
+                                    R.drawable.ic_character_uncompleted
+                            ),
+                            contentDescription = null,
+                            modifier = Modifier.size(48.dp)
+                        )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(
+                text = "Misiones Diarias:",
+                color = Color(0xFF244984),
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold
+            )
+
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable(onClick = onNavigateToDailyQuests),
+                shape = RoundedCornerShape(8.dp),
+                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = CardBackgroundColor
+                ),
+                border = CardDefaults.outlinedCardBorder()
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceAround
+                    ) {
+                        appData.dailyMissions.forEach { mission ->
+                            MissionProgressBar(mission = mission)
+                        }
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(
+                text = "Progreso General:",
+                color = Color(0xFF244984),
+                fontSize = 18.sp,
+                fontWeight = FontWeight.SemiBold
+            )
+
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(8.dp),
+                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = CardBackgroundColor
+                ),
+                border = CardDefaults.outlinedCardBorder()
+            ) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(vertical = 8.dp),
-                    horizontalArrangement = Arrangement.SpaceAround,
-                    verticalAlignment = Alignment.CenterVertically
+                        .padding(16.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    appData.dailyProgress.forEach { dayProgress ->
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text(text = dayProgress.day, color=  Color(0xFF244984), fontSize = 12.sp)
-                            Spacer(modifier = Modifier.height(4.dp))
-                            Image(
-                                painter = painterResource(
-                                    id = if (dayProgress.completed) R.drawable.ic_character_completed else R.drawable.ic_character_uncompleted
-                                ), // Reemplaza con tus propios drawables
-                                contentDescription = null,
-                                modifier = Modifier.size(48.dp)
-                            )
-                        }
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(16.dp))
-                Text(
-                    text = "Misiones Diarias:",
-                    color=  Color(0xFF244984),
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold
-                )
-                // Sección 2: Misiones Diarias (Tu código existente)
-                Card(
-                    modifier = Modifier.fillMaxWidth().clickable(onClick = onNavigateToDailyQuests),
-                    shape = RoundedCornerShape(8.dp),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = CardBackgroundColor),
-                    border= CardDefaults.outlinedCardBorder()
-                ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceAround
-                        ) {
-                            appData.dailyMissions.forEach { mission ->
-                                MissionProgressBar(mission = mission)
-                            }
-                        }
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(16.dp))
-                Text(
-                    text = "Progreso General:",
-                    color=  Color(0xFF244984),
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.SemiBold
-                )
-                // Sección 3: Progreso General (Tu código existente)
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(8.dp),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = CardBackgroundColor),
-                    border= CardDefaults.outlinedCardBorder()
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween
+                    Box(
+                        modifier = Modifier.size(200.dp),
+                        contentAlignment = Alignment.Center
                     ) {
-                        // Barra circular de progreso
-                        Box(
-                            modifier = Modifier.size(200.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            CircularProgressIndicator(
-                                progress = appData.generalProgress.current / appData.generalProgress.max.toFloat(),
-                                modifier = Modifier.fillMaxSize(),
-                                strokeWidth = 8.dp,
-                                color = MaterialTheme.colorScheme.primary,
-                                trackColor = Color.LightGray.copy(alpha = 0.3f)
-                            )
-                            Text(
-                                text = "${appData.generalProgress.current}%",
-                                color=  Color(0xFF244984),
-                                fontSize = 50.sp,
-                                fontWeight = FontWeight.Bold,
-                            )
-                        }
+                        CircularProgressIndicator(
+                            progress = appData.generalProgress.current /
+                                    appData.generalProgress.max.toFloat(),
+                            modifier = Modifier.fillMaxSize(),
+                            strokeWidth = 8.dp,
+                            color = MaterialTheme.colorScheme.primary,
+                            trackColor = Color.LightGray.copy(alpha = 0.3f)
+                        )
+                        Text(
+                            text = "${appData.generalProgress.current}%",
+                            color = Color(0xFF244984),
+                            fontSize = 50.sp,
+                            fontWeight = FontWeight.Bold,
+                        )
+                    }
 
-                        // Imagen y texto de racha
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Image(
-                                painter = painterResource(id = R.drawable.ic_character_completed), // Reemplaza con tu imagen de mascota
-                                contentDescription = null,
-                                modifier = Modifier.size(80.dp)
-                            )
-                            Text(
-                                text = "${appData.streakDays} días de racha!",
-                                color=  Color(0xFF244984),
-                                fontSize = 16.sp,
-                                fontWeight = FontWeight.SemiBold,
-                                modifier = Modifier.padding(top = 4.dp)
-                            )
-
-                        }
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Image(
+                            painter = painterResource(id = R.drawable.ic_character_completed),
+                            contentDescription = null,
+                            modifier = Modifier.size(80.dp)
+                        )
+                        Text(
+                            text = "${appData.streakDays} días de racha!",
+                            color = Color(0xFF244984),
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            modifier = Modifier.padding(top = 4.dp)
+                        )
                     }
                 }
+            }
 
-                Spacer(modifier = Modifier.height(16.dp))
-                Text(
-                    text = "Módulos",
-                    color=  Color(0xFF244984),
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(bottom = 12.dp)
-                )
-                // Sección 4: Lecciones (Tu código existente)
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(8.dp),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = CardBackgroundColor),
-                    border= CardDefaults.outlinedCardBorder()
-                ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(
+                text = "Módulos",
+                color = Color(0xFF244984),
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(bottom = 12.dp)
+            )
 
-                        appData.lessons.forEach { lesson ->
-                            ModuleProgressBar(module = lesson)
-                            Spacer(modifier = Modifier.height(8.dp))
-                        }
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(8.dp),
+                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = CardBackgroundColor
+                ),
+                border = CardDefaults.outlinedCardBorder()
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    appData.lessons.forEach { lesson ->
+                        ModuleProgressBar(module = lesson)
+                        Spacer(modifier = Modifier.height(8.dp))
                     }
                 }
             }
         }
     }
+}
