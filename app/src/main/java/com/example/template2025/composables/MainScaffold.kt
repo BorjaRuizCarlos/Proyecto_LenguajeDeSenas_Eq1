@@ -48,8 +48,6 @@ fun MainScaffold(
     val nav = rememberNavController()
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
 
-    val profileViewModel: ProfileViewModel = viewModel()
-
     // Token desde DataStore
     val tokenFlow = remember { TokenStore.tokenFlow(context) }
     val token by tokenFlow.collectAsState(initial = null)
@@ -162,15 +160,15 @@ fun MainScaffold(
                 composable(Route.Profile.route) {
                     ProfileScreen(
                         navController = nav,
-                        profileViewModel = profileViewModel
+                        token = safeToken
                     )
                 }
 
                 // AJUSTES
                 composable(Route.Settings.route) {
                     SettingsScreen(
-                        profileViewModel = profileViewModel,
-                        onBack = { nav.popBackStack() }
+                        navController = nav,
+                        token = safeToken
                     )
                 }
 
