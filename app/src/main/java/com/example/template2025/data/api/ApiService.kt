@@ -1,8 +1,6 @@
 // ApiService.kt
 package com.example.template2025.data.api
 
-import retrofit2.http.Path
-import retrofit2.http.Query
 import com.example.template2025.viewModel.UserProfile
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
@@ -13,28 +11,38 @@ import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.Header
 import retrofit2.http.POST
+import retrofit2.http.Path
+import retrofit2.http.Query
 
 interface ApiService {
+
+    // ===================== AUTH =====================
+
     @POST("auth/signup")
-    suspend fun signup(@Body body: SignupRequest): Response<SignupResponse>
+    suspend fun signup(
+        @Body body: SignupRequest
+    ): Response<SignupResponse>
 
     @POST("auth/login")
-    suspend fun login(@Body body: LoginRequest): Response<LoginResponse>
+    suspend fun login(
+        @Body body: LoginRequest
+    ): Response<LoginResponse>
+
+    // ===================== HOME =====================
 
     @GET("api/home")
     suspend fun getHomeData(
         @Header("Authorization") authorization: String
     ): Response<HomeResponse>
 
-    // 👇 FUNCIÓN AÑADIDA
+    // ===================== PERFIL =====================
+
     @GET("profile/me")
     suspend fun getProfile(
         @Header("Authorization") authorization: String
     ): Response<UserProfile>
 
     // ===================== DICCIONARIO =====================
-
-// ===================== DICCIONARIO =====================
 
     // GET /dictionary/  (search es opcional)
     @GET("dictionary/")
@@ -50,6 +58,22 @@ interface ApiService {
         @Path("word_id") wordId: Int
     ): Response<DictionaryWordDetail>
 
+    // ===================== MISIONES DIARIAS =====================
+
+    // GET /missions/daily
+    @GET("missions/daily")
+    suspend fun getDailyMissions(
+        @Header("Authorization") authorization: String
+    ): Response<DailyMissionsResponse>
+
+    // POST /missions/update
+    @POST("missions/update")
+    suspend fun updateMission(
+        @Header("Authorization") authorization: String,
+        @Body body: UpdateMissionRequest
+    ): Response<Unit>
+
+    // ===================== CREACIÓN DE RETROFIT =====================
 
     companion object {
         fun create(baseUrl: String): ApiService {

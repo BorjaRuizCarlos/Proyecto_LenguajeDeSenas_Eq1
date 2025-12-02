@@ -28,12 +28,17 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.template2025.R
+import com.example.template2025.data.api.ApiService
 import com.example.template2025.dataStore.DataStore
 import com.example.template2025.dataStore.TokenStore
 import com.example.template2025.navigation.Route
 import com.example.template2025.screens.*
 import com.example.template2025.ui.theme.BlueLight
+import com.example.template2025.ui.theme.MissionUi
 import com.example.template2025.ui.theme.Template2025Theme
+import com.example.template2025.viewModel.DailyMissionsUiState
+import com.example.template2025.viewModel.DailyMissionsViewModel
+import com.example.template2025.viewModel.DailyMissionsViewModelFactory
 import com.example.template2025.viewModel.ProfileViewModel
 import kotlinx.coroutines.launch
 
@@ -120,13 +125,7 @@ fun MainScaffold(
                     title = {
                         Column {
                             Text("Template App", color = Color.White)
-                            Text(
-                                text = if (!safeToken.isNullOrBlank())
-                                    "Token: ${safeToken.take(12)}..."
-                                else "Sin token",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = Color.White.copy(alpha = 0.7f)
-                            )
+
                         }
                     },
                     navigationIcon = {
@@ -164,6 +163,73 @@ fun MainScaffold(
                     )
                 }
 
+                // 🔹 MISIONS DIARIAS – AQUÍ VA EL NUEVO CÓDIGO
+                composable(Route.DailyQuests.route) {
+
+                    val token = safeToken
+
+                    if (token.isNullOrBlank()) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(BlueLight),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = "No se encontró token.\nVuelve a iniciar sesión.",
+                                color = MaterialTheme.colorScheme.error
+                            )
+                        }
+                    } else {
+                        val apiService = ApiService.RetrofitClient.apiService
+
+                        val viewModel: DailyMissionsViewModel = viewModel(
+                            factory = DailyMissionsViewModelFactory(apiService)
+                        )
+
+                        LaunchedEffect(token) {
+                            viewModel.fetchDailyMissions(token)
+                        }
+
+                        val uiState by viewModel.uiState.collectAsState()
+
+                        when (uiState) {
+                            is DailyMissionsUiState.Loading -> {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .background(BlueLight),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    CircularProgressIndicator()
+                                }
+                            }
+
+                            is DailyMissionsUiState.Error -> {
+                                val message = (uiState as DailyMissionsUiState.Error).message
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .background(BlueLight),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text(
+                                        text = "Error al cargar misiones:\n$message",
+                                        color = MaterialTheme.colorScheme.error
+                                    )
+                                }
+                            }
+
+                            is DailyMissionsUiState.Success -> {
+                                val missions = (uiState as DailyMissionsUiState.Success).missions
+                                MisionesDiariasScreen(
+                                    missions = missions,
+                                    modifier = Modifier.fillMaxSize()
+                                )
+                            }
+                        }
+                    }
+                }
                 // AJUSTES
                 composable(Route.Settings.route) {
                     SettingsScreen(
@@ -208,10 +274,42 @@ fun MainScaffold(
                         onBack = { nav.popBackStack() }
                     )
                 }
+                // ⭐ NUEVA ROUTE: InsideModule
+                composable(
+                    route = Route.InsideModule.route,
+                    arguments = listOf(
+                        navArgument("moduleId") { type = NavType.IntType }
+                    )
+                ) { backStackEntry ->
+                    val moduleId = backStackEntry.arguments?.getInt("moduleId")
+                    InsideModulesScreen(
+                        navController = nav,
+                        moduleId = moduleId
+                    )
+                }
+
+                // ⭐ NUEVA ROUTE: LessonsContent
+                composable(
+                    route = Route.LessonsContent.route,
+                    arguments = listOf(
+                        navArgument("moduleId") { type = NavType.IntType },
+                        navArgument("lessonId") { type = NavType.IntType }
+                    )
+                ) { backStackEntry ->
+                    val moduleId = backStackEntry.arguments?.getInt("moduleId")
+                    val lessonId = backStackEntry.arguments?.getInt("lessonId")
+
+                    LessonsContentScreen(
+                        navController = nav,
+                        moduleId = moduleId,
+                        lessonId = lessonId
+                    )
+                }
+            }
             }
         }
     }
-}
+
 
 @Composable
 fun DrawerTextItem(
