@@ -38,7 +38,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.template2025.R
-import com.example.template2025.data.api.ApiService // Import corregido
+import com.example.template2025.data.api.ApiService
 import com.example.template2025.navigation.Route
 import com.example.template2025.ui.theme.BlueLight
 import com.example.template2025.ui.theme.Template2025Theme
@@ -49,7 +49,8 @@ import com.example.template2025.viewModel.ProfileViewModelFactory
 @Composable
 fun ProfileScreen(
     navController: NavController,
-    token: String? // 🔹 Recibe el token
+    token: String?, 
+    profileViewModel: ProfileViewModel // Vuelve a aceptar el ViewModel
 ) {
     // Si no hay token, avisamos y NO llamamos a la API
     if (token.isNullOrBlank()) {
@@ -68,12 +69,6 @@ fun ProfileScreen(
         }
         return
     }
-
-    // Usamos el objeto RetrofitClient que ya existe en tu ApiService
-    val apiService = remember { ApiService.RetrofitClient.apiService }
-    val profileViewModel: ProfileViewModel = viewModel(
-        factory = ProfileViewModelFactory(apiService)
-    )
 
     // Llamamos al backend cada vez que cambie el token
     LaunchedEffect(token) {
@@ -242,7 +237,7 @@ fun ProfileScreen(
                             subtitle = "Sonido, vibración y recordatorios",
                             icon = Icons.Default.Notifications
                         ) {
-                            navController.navigate(Route.ProfileNotifications.route)
+                            //navController.navigate(Route.ProfileNotifications.route)
                         }
 
                         ProfileOptionCard(
@@ -250,7 +245,7 @@ fun ProfileScreen(
                             subtitle = "Contraseña, sesión y datos",
                             icon = Icons.Default.Lock
                         ) {
-                            navController.navigate(Route.ProfilePrivacy.route)
+                            //navController.navigate(Route.ProfilePrivacy.route)
                         }
                     }
                 }
@@ -326,6 +321,6 @@ fun ProfileScreenPreview() {
         val nav = rememberNavController()
         // La preview ahora solo puede mostrar el estado sin token,
         // ya que no tiene acceso al ViewModel real ni a la capa de red.
-        ProfileScreen(navController = nav, token = null)
+        ProfileScreen(navController = nav, token = null, profileViewModel = viewModel()) // Error esperado en preview
     }
 }

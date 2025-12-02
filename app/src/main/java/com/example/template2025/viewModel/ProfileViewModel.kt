@@ -74,6 +74,14 @@ class ProfileViewModel(private val apiService: ApiService) : ViewModel() {
             }
         }
     }
+
+    /**
+     * Función "hardcodeada" para actualizar el avatar localmente.
+     */
+    fun updateAvatar(newAvatarResId: Int) {
+        _selectedAvatarResId.value = newAvatarResId
+    }
+
     // Aquí podría ir en el futuro una función para actualizar el perfil
     // fun updateProfileName(token: String, newName: String) { ... }
 }

@@ -11,7 +11,9 @@ sealed class Route(val route: String) {
 
     // Main internas
     data object Home : Route("home")
-    data object Profile : Route("profile")
+    // La ruta de Perfil ahora es un grafo
+    data object ProfileGraph : Route("profile_graph") // Nueva ruta padre
+    data object Profile : Route("profile") // Pantalla principal de perfil
     data object Settings : Route("settings")
     data object Modules : Route("modules")
 
@@ -39,7 +41,7 @@ sealed class Route(val route: String) {
             "lesson_question/$moduleId/$lessonId"
     }
 
-    // Rutas de opciones de perfil
+    // Rutas de opciones de perfil (anidadas)
     data object ProfileEditPhoto : Route("profile_edit_photo")
     data object ProfileNotifications : Route("profile_notifications")
     data object ProfilePrivacy : Route("profile_privacy")
