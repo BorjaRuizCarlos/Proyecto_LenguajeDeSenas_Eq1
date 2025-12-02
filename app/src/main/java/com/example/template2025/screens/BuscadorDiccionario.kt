@@ -20,9 +20,20 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.template2025.data.api.ApiService
+import com.example.template2025.data.api.DictionaryWord
 import com.example.template2025.ui.theme.BlueDark
 import com.example.template2025.ui.theme.BlueLight
 import com.example.template2025.ui.theme.Template2025Theme
+import com.example.template2025.viewModel.DictionaryUiState
+import com.example.template2025.viewModel.DictionaryViewModel
+import com.example.template2025.viewModel.DictionaryViewModelFactory
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.collectAsState
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.compose.runtime.LaunchedEffect
 
 /* ---------------------------------------------------------------- */
 /* -----------------   ROUTE CON ESTADO   -------------------------- */
@@ -30,19 +41,61 @@ import com.example.template2025.ui.theme.Template2025Theme
 
 @Composable
 fun BuscadorDiccionarioRoute(
-    words: List<String>,
-    onWordClick: (String) -> Unit,
+    onWordClick: (Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val apiService = remember { ApiService.RetrofitClient.apiService }
+
+    val vm: DictionaryViewModel = viewModel(
+        factory = DictionaryViewModelFactory(apiService)
+    )
+
+    val uiState by vm.uiState.collectAsState()
     var searchQuery by remember { mutableStateOf("") }
 
-    BuscadorDiccionarioScreen(
-        words = words,
-        searchQuery = searchQuery,
-        onSearchChange = { searchQuery = it },
-        onWordClick = onWordClick,
+    // Cargamos todas las palabras una sola vez
+    LaunchedEffect(Unit) {
+        vm.loadDictionary()
+    }
+
+    Box(
         modifier = modifier
-    )
+            .fillMaxSize()
+            .background(BlueLight)
+    ) {
+        when {
+            uiState.loading -> {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator()
+                }
+            }
+
+            uiState.error != null -> {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "Error al cargar diccionario:\n${uiState.error}",
+                        color = MaterialTheme.colorScheme.error,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                }
+            }
+
+            else -> {
+                BuscadorDiccionarioScreen(
+                    words = uiState.words,
+                    searchQuery = searchQuery,
+                    onSearchChange = { searchQuery = it },
+                    onWordClick = onWordClick
+                )
+            }
+        }
+    }
 }
 
 /* ---------------------------------------------------------------- */
@@ -51,10 +104,10 @@ fun BuscadorDiccionarioRoute(
 
 @Composable
 fun BuscadorDiccionarioScreen(
-    words: List<String>,
+    words: List<DictionaryWord>,
     searchQuery: String,
     onSearchChange: (String) -> Unit,
-    onWordClick: (String) -> Unit,
+    onWordClick: (Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
     Box(
@@ -65,7 +118,7 @@ fun BuscadorDiccionarioScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(top = 16.dp) // pequeño margen superior bajo la barra global
+                .padding(top = 16.dp)
         ) {
             // --------- BUSCADOR ---------
             SearchBarDiccionario(
@@ -80,7 +133,7 @@ fun BuscadorDiccionarioScreen(
 
             // --------- GRID DE PALABRAS ---------
             val filteredWords = words.filter { word ->
-                word.contains(searchQuery, ignoreCase = true)
+                word.titulo.contains(searchQuery, ignoreCase = true)
             }
 
             Box(
@@ -95,10 +148,10 @@ fun BuscadorDiccionarioScreen(
                     verticalArrangement = Arrangement.spacedBy(16.dp),
                     horizontalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    items(filteredWords) { word ->
+                    items(filteredWords, key = { it.id }) { word ->
                         WordCard(
-                            text = word,
-                            onClick = { onWordClick(word) }
+                            text = word.titulo,
+                            onClick = { onWordClick(word.id) }
                         )
                     }
                 }
@@ -186,11 +239,14 @@ fun WordCard(
 @Composable
 fun PreviewBuscadorDiccionario() {
     Template2025Theme {
-        BuscadorDiccionarioRoute(
+        // Preview con datos fake
+        BuscadorDiccionarioScreen(
             words = listOf(
-                "Casa", "Perro", "Gato", "Comida", "Escuela", "Libro", "Mesa",
-                "Familia", "Trabajo", "Amigo", "Agua", "Juego", "Ropa"
+                DictionaryWord(1, "Casa", "url1", 10, "L1", "M1"),
+                DictionaryWord(2, "Perro", "url2", 10, "L1", "M1")
             ),
+            searchQuery = "",
+            onSearchChange = {},
             onWordClick = {}
         )
     }

@@ -190,21 +190,19 @@ fun MainScaffold(
                 // DICCIONARIO
                 composable(Route.Diccionario.route) {
                     BuscadorDiccionarioRoute(
-                        words = listOf("Casa", "Perro", "Gato", "Comida", "Trabajo"),
-                        onWordClick = { word ->
-                            nav.navigate(Route.DiccionarioWord.createRoute(word))
+                        onWordClick = { wordId ->
+                            nav.navigate(Route.DiccionarioWord.createRoute(wordId))
                         }
                     )
                 }
 
                 composable(
                     route = Route.DiccionarioWord.route,
-                    arguments = listOf(navArgument("word") { type = NavType.StringType })
-                ) {
-                    val word = it.arguments?.getString("word") ?: "Palabra"
-                    PalabraDiccionarioScreen(
-                        word = word,
-                        imageRes = R.drawable.btn_abecedario_continuar,
+                    arguments = listOf(navArgument("wordId") { type = NavType.IntType })
+                ) { backStackEntry ->
+                    val wordId = backStackEntry.arguments?.getInt("wordId") ?: 0
+                    PalabraDiccionarioRoute(
+                        wordId = wordId,
                         onBack = { nav.popBackStack() }
                     )
                 }

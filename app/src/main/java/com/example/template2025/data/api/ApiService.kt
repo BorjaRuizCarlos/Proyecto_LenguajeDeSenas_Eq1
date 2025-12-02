@@ -1,6 +1,8 @@
 // ApiService.kt
 package com.example.template2025.data.api
 
+import retrofit2.http.Path
+import retrofit2.http.Query
 import com.example.template2025.viewModel.UserProfile
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
@@ -29,6 +31,20 @@ interface ApiService {
     suspend fun getProfile(
         @Header("Authorization") authorization: String
     ): Response<UserProfile>
+
+    // ===================== DICCIONARIO =====================
+
+    // GET /dictionary/  (search es opcional)
+    @GET("dictionary/")
+    suspend fun getDictionary(
+        @Query("search") search: String? = null
+    ): Response<DictionaryListResponse>
+
+    // GET /dictionary/{word_id}
+    @GET("dictionary/{word_id}")
+    suspend fun getDictionaryWord(
+        @Path("word_id") wordId: Int
+    ): Response<DictionaryWordDetail>
 
     companion object {
         fun create(baseUrl: String): ApiService {
