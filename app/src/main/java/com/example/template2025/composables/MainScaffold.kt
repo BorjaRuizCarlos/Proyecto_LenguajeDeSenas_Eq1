@@ -23,6 +23,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import androidx.compose.ui.platform.LocalContext
 import com.example.template2025.R
 import com.example.template2025.navigation.Route
 import com.example.template2025.screens.*
@@ -30,7 +31,12 @@ import com.example.template2025.ui.theme.BlueLight
 import com.example.template2025.ui.theme.MissionUi
 import com.example.template2025.ui.theme.Template2025Theme
 import com.example.template2025.viewModel.ProfileViewModel
+import com.example.template2025.dataStore.TokenStore
+import com.example.template2025.dataStore.DataStore
 import kotlinx.coroutines.launch
+
+// 👇 CompositionLocal para compartir el token en toda la app
+val LocalAuthToken = staticCompositionLocalOf<String?> { null }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -44,6 +50,10 @@ fun MainScaffold(
 
     // ViewModel compartido para perfil (foto, username, bio)
     val profileViewModel: ProfileViewModel = viewModel()
+
+    // 👇 Obtenemos token desde DataStore
+    val context = LocalContext.current
+    val token by TokenStore.tokenFlow(context).collectAsState(initial = null)
 
     ModalNavigationDrawer(
         drawerState = drawerState,
@@ -89,7 +99,12 @@ fun MainScaffold(
                         icon = Icons.Outlined.Logout,
                         bold = true
                     ) {
-                        scope.launch { drawerState.close() }
+                        scope.launch {
+                            // 👇 Limpiamos token y flag de login
+                            TokenStore.clear(context)
+                            DataStore.setLoggedIn(context, false)
+                            drawerState.close()
+                        }
                         onLogoutClick()
                         onNavigateToAuth()
                     }
@@ -97,105 +112,119 @@ fun MainScaffold(
             }
         }
     ) {
-        Scaffold(
-            containerColor = BlueLight,
-            topBar = {
-                TopAppBar(
-                    title = { Text("Template App", color = Color.White) },
-                    navigationIcon = {
-                        IconButton(onClick = { scope.launch { drawerState.open() } }) {
-                            Icon(
-                                Icons.Filled.Menu,
-                                contentDescription = "Menu",
-                                tint = Color.White
-                            )
-                        }
-                    },
-                    colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = Color(0xFF21409A)
-                    )
-                )
-            }
-        ) { innerPadding ->
-            NavHost(
-                navController = nav,
-                startDestination = Route.Home.route,
-                modifier = Modifier.padding(innerPadding)
-            ) {
-                // --------- principales ---------
-                composable(Route.Home.route) {
-                    HomeScreen(navController = nav)
-                }
-                composable(Route.Profile.route) {
-                    ProfileScreen(
-                        navController = nav,
-                        profileViewModel = profileViewModel
-                    )
-                }
-                composable(Route.Settings.route) {
-                    SettingsScreen(
-                        profileViewModel = profileViewModel,
-                        onBack = { nav.popBackStack() }
-                    )
-                }
-                composable(Route.Modules.route)  {
-                    ModulesScreen(navController = nav)
-                }
-
-                // --------- abecedario / misiones ---------
-                composable(Route.Abecedario.route) {
-                    AbecedarioScreen(
-                        letter = "B",
-                        mainImage = R.drawable.btn_abecedario_continuar,
-                        onPrev = {},
-                        onNext = {},
-                    )
-                }
-
-                composable(Route.DailyQuests.route) {
-                    MisionesDiariasScreen(
-                        missions = listOf(
-                            MissionUi("Gana 50 XP", 43, 50, R.drawable.ic_mision_xp),
-                            MissionUi("Completa 2 lecciones", 1, 2, R.drawable.ic_mision_lecciones),
-                            MissionUi("Termina un módulo", 43, 50, R.drawable.ic_mision_modulo)
+        // 👇 Inyectamos el token a todo el árbol de composables
+        CompositionLocalProvider(LocalAuthToken provides token) {
+            Scaffold(
+                containerColor = BlueLight,
+                topBar = {
+                    TopAppBar(
+                        title = {
+                            Column {
+                                Text("Template App", color = Color.White)
+                                // 👇 Mostrar token recortado en barra (opcional)
+                                if (!token.isNullOrBlank()) {
+                                    Text(
+                                        text = "Token: ${token!!.take(12)}...",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = Color.White.copy(alpha = 0.7f)
+                                    )
+                                }
+                            }
+                        },
+                        navigationIcon = {
+                            IconButton(onClick = { scope.launch { drawerState.open() } }) {
+                                Icon(
+                                    Icons.Filled.Menu,
+                                    contentDescription = "Menu",
+                                    tint = Color.White
+                                )
+                            }
+                        },
+                        colors = TopAppBarDefaults.topAppBarColors(
+                            containerColor = Color(0xFF21409A)
                         )
                     )
                 }
+            ) { innerPadding ->
+                NavHost(
+                    navController = nav,
+                    startDestination = Route.Home.route,
+                    modifier = Modifier.padding(innerPadding)
+                ) {
+                    // --------- principales ---------
+                    composable(Route.Home.route) {
+                        HomeScreen(navController = nav)
+                    }
+                    composable(Route.Profile.route) {
+                        ProfileScreen(
+                            navController = nav,
+                            profileViewModel = profileViewModel
+                        )
+                    }
+                    composable(Route.Settings.route) {
+                        SettingsScreen(
+                            profileViewModel = profileViewModel,
+                            onBack = { nav.popBackStack() }
+                        )
+                    }
+                    composable(Route.Modules.route) {
+                        ModulesScreen(navController = nav)
+                    }
 
-                // --------- módulos ---------
-                composable(
-                    route = Route.InsideModule.route,
-                    arguments = listOf(navArgument("moduleId") { type = NavType.IntType })
-                ) { backStackEntry ->
-                    val moduleId = backStackEntry.arguments?.getInt("moduleId")
-                    InsideModulesScreen(navController = nav, moduleId = moduleId)
-                }
+                    // --------- abecedario / misiones ---------
+                    composable(Route.Abecedario.route) {
+                        AbecedarioScreen(
+                            letter = "B",
+                            mainImage = R.drawable.btn_abecedario_continuar,
+                            onPrev = {},
+                            onNext = {},
+                        )
+                    }
 
-                // --------- diccionario ---------
-                composable(Route.Diccionario.route) {
-                    BuscadorDiccionarioRoute(
-                        words = listOf(
-                            "Casa", "Perro", "Gato", "Comida", "Escuela", "Libro", "Mesa",
-                            "Familia", "Trabajo", "Amigo", "Agua", "Juego", "Ropa"
-                        ),
-                        onWordClick = { word ->
-                            nav.navigate(Route.DiccionarioWord.createRoute(word))
-                        }
-                    )
-                }
+                    composable(Route.DailyQuests.route) {
+                        MisionesDiariasScreen(
+                            missions = listOf(
+                                MissionUi("Gana 50 XP", 43, 50, R.drawable.ic_mision_xp),
+                                MissionUi("Completa 2 lecciones", 1, 2, R.drawable.ic_mision_lecciones),
+                                MissionUi("Termina un módulo", 43, 50, R.drawable.ic_mision_modulo)
+                            )
+                        )
+                    }
 
-                composable(
-                    route = Route.DiccionarioWord.route,
-                    arguments = listOf(navArgument("word") { type = NavType.StringType })
-                ) { backStackEntry ->
-                    val word = backStackEntry.arguments?.getString("word") ?: "Palabra"
+                    // --------- módulos ---------
+                    composable(
+                        route = Route.InsideModule.route,
+                        arguments = listOf(navArgument("moduleId") { type = NavType.IntType })
+                    ) { backStackEntry ->
+                        val moduleId = backStackEntry.arguments?.getInt("moduleId")
+                        InsideModulesScreen(navController = nav, moduleId = moduleId)
+                    }
 
-                    PalabraDiccionarioScreen(
-                        word = word,
-                        imageRes = R.drawable.btn_abecedario_continuar,
-                        onBack = { nav.popBackStack() }
-                    )
-                }
+                    // --------- diccionario ---------
+                    composable(Route.Diccionario.route) {
+                        BuscadorDiccionarioRoute(
+                            words = listOf(
+                                "Casa", "Perro", "Gato", "Comida", "Escuela", "Libro", "Mesa",
+                                "Familia", "Trabajo", "Amigo", "Agua", "Juego", "Ropa"
+                            ),
+                            onWordClick = { word ->
+                                nav.navigate(Route.DiccionarioWord.createRoute(word))
+                            }
+                        )
+                    }
+
+                    composable(
+                        route = Route.DiccionarioWord.route,
+                        arguments = listOf(navArgument("word") { type = NavType.StringType })
+                    ) { backStackEntry ->
+                        val word = backStackEntry.arguments?.getString("word") ?: "Palabra"
+
+                        PalabraDiccionarioScreen(
+                            word = word,
+                            imageRes = R.drawable.btn_abecedario_continuar,
+                            onBack = { nav.popBackStack() }
+                        )
+                    }
 
                 // --------- lecciones ---------
 // ... en tu MainScaffold
@@ -221,21 +250,64 @@ fun MainScaffold(
 
 // Los composables Route.LessonPractice y Route.LessonQuestion deben ser eliminados
 // o comentados de aquí si no quieres que sean navegables directamente.
+                    // --------- lecciones ---------
+                    composable(
+                        route = Route.LessonPractice.route,
+                        arguments = listOf(
+                            navArgument("moduleId") { type = NavType.IntType },
+                            navArgument("lessonId") { type = NavType.IntType }
+                        )
+                    ) { backStackEntry ->
+                        val moduleId = backStackEntry.arguments?.getInt("moduleId") ?: 0
+                        val lessonId = backStackEntry.arguments?.getInt("lessonId") ?: 0
 
-                // --------- opciones de perfil ---------
-                composable(Route.ProfileEditPhoto.route) {
-                    EditPhotoScreen(
-                        profileViewModel = profileViewModel,
-                        onBack = { nav.popBackStack() }
-                    )
-                }
+                        PracticaLetraScreen(
+                            titulo = "Palabra",
+                            imageRes = R.drawable.btn_abecedario_continuar,
+                            onContinuar = {
+                                nav.navigate(
+                                    Route.LessonQuestion.createRoute(
+                                        moduleId = moduleId,
+                                        lessonId = lessonId
+                                    )
+                                )
+                            }
+                        )
+                    }
 
-                composable(Route.ProfileNotifications.route) {
-                    NotificationsSettingsScreen(onBack = { nav.popBackStack() })
-                }
+                    composable(
+                        route = Route.LessonQuestion.route,
+                        arguments = listOf(
+                            navArgument("moduleId") { type = NavType.IntType },
+                            navArgument("lessonId") { type = NavType.IntType }
+                        )
+                    ) {
+                        PreguntaLeccionScreen(
+                            pregunta = "¿Cuál de estas opciones es la correcta?",
+                            respuestas = listOf("Respuesta 1", "Respuesta 2", "Respuesta 3", "Respuesta 4"),
+                            imageRes = R.drawable.btn_abecedario_continuar,
+                            onRespuestaClick = { },
+                            onContinuar = {
+                                nav.popBackStack(Route.InsideModule.route, inclusive = false)
+                            }
+                        )
+                    }
 
-                composable(Route.ProfilePrivacy.route) {
-                    PrivacySettingsScreen(onBack = { nav.popBackStack() })
+                    // --------- opciones de perfil ---------
+                    composable(Route.ProfileEditPhoto.route) {
+                        EditPhotoScreen(
+                            profileViewModel = profileViewModel,
+                            onBack = { nav.popBackStack() }
+                        )
+                    }
+
+                    composable(Route.ProfileNotifications.route) {
+                        NotificationsSettingsScreen(onBack = { nav.popBackStack() })
+                    }
+
+                    composable(Route.ProfilePrivacy.route) {
+                        PrivacySettingsScreen(onBack = { nav.popBackStack() })
+                    }
                 }
             }
         }
