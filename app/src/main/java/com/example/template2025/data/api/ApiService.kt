@@ -35,6 +35,31 @@ interface ApiService {
         @Header("Authorization") authorization: String
     ): Response<HomeResponse>
 
+    // ===================== MODULOS =====================
+
+    @GET("api/modulos/")
+    suspend fun getModuloData(
+        @Header("Authorization") authorization: String
+    ): Response<ModuloResponse>
+
+    @GET("api/modulos/{modulo_id}/lecciones")
+    suspend fun getLeccionesData(
+        @Header("Authorization") authorization: String,
+        @Path("modulo_id") moduloId: Int
+    ): Response<LeccionesResponse>
+
+    @GET("lessons/{leccion_id}")
+    suspend fun getLessonContent(
+        @Header("Authorization") authorization: String,
+        @Path("leccion_id") leccionId: Int
+    ): Response<LessonContentResponse>
+
+    @POST("lessons/{leccion_id}/answer")
+    suspend fun sendLessonAnswer(
+        @Header("Authorization") authorization: String,
+        @Path("leccion_id") lessonId: Int,
+        @Body body: LessonAnswerRequest
+    ): Response<Unit> // Usamos Response<Unit> si la respuesta no tiene cuerpo.
     // ===================== PERFIL =====================
 
     @GET("profile/me")

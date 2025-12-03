@@ -19,11 +19,14 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -35,22 +38,113 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.template2025.R
+import com.example.template2025.data.api.ApiService
 import com.example.template2025.navigation.Route
 import com.example.template2025.viewModel.Module
+import com.example.template2025.viewModel.ModuleUiState
 import com.example.template2025.viewModel.ModuleViewModel
 
+// =====================================================================
+// FACTORY para ModuleViewModel
+// =====================================================================
+class ModuleViewModelFactory(
+    private val apiService: ApiService
+) : ViewModelProvider.Factory {
+    override fun <T : ViewModel> create(modelClass: Class<T>): T {
+        if (modelClass.isAssignableFrom(ModuleViewModel::class.java)) {
+            @Suppress("UNCHECKED_CAST")
+            return ModuleViewModel(apiService) as T
+        }
+        throw IllegalArgumentException("Unknown ViewModel class")
+    }
+}
+
+// =====================================================================
+// MODULOS SCREEN: recibe token desde MainScaffold
+// =====================================================================
 @Composable
 fun ModulesScreen(
     navController: NavController,
-    moduleViewModel: ModuleViewModel = viewModel(),
+    token: String? = null
+) {
+    // Si no hay token, avisamos y NO llamamos a la API
+    if (token.isNullOrBlank()) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color(0xFFE6F0F8)),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = "No se encontró token.\nVuelve a iniciar sesión.",
+                color = Color(0xFF21409A),
+                fontWeight = FontWeight.SemiBold
+            )
+        }
+        return
+    }
+
+    val apiService = remember { ApiService.RetrofitClient.apiService }
+    val moduleViewModel: ModuleViewModel = viewModel(
+        factory = ModuleViewModelFactory(apiService)
+    )
+
+    // Llamamos al backend cada vez que cambie el token
+    LaunchedEffect(token) {
+        moduleViewModel.fetchModuloData(token)
+    }
+
+    val uiState by moduleViewModel.uiState.collectAsState()
+
+    when (uiState) {
+        is ModuleUiState.Loading -> {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color(0xFFE6F0F8)),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator()
+            }
+        }
+
+        is ModuleUiState.Success -> {
+            val modules = (uiState as ModuleUiState.Success).modules
+            ModulesScreenContent(
+                navController = navController,
+                modules = modules
+            )
+        }
+
+        is ModuleUiState.Error -> {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color(0xFFE6F0F8)),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = (uiState as ModuleUiState.Error).message,
+                    color = Color.Red,
+                    fontWeight = FontWeight.SemiBold
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun ModulesScreenContent(
+    navController: NavController,
+    modules: List<Module>,
     modifier: Modifier = Modifier
 ) {
-    val modules by moduleViewModel.modules.collectAsState()
-
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -70,7 +164,7 @@ fun ModulesScreen(
             textAlign = TextAlign.Center
         )
 
-        // “Onda” decorativa bajo el título
+        // "Onda" decorativa bajo el título
         Spacer(Modifier.height(4.dp))
         Box(
             modifier = Modifier
