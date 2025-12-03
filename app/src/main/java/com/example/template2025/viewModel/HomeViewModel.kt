@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.template2025.data.api.ApiService
 import com.example.template2025.data.api.HomeResponse
+import com.example.template2025.data.api.MissionRemote
 import com.example.template2025.screens.AppData
 import com.example.template2025.screens.DayProgress
 import com.example.template2025.screens.Mission
@@ -28,30 +29,42 @@ class HomeViewModel(
     val uiState: StateFlow<HomeUiState> = _uiState
 
     /**
-     * Llama al endpoint de home usando el token JWT.
-     * Pásale el token que obtienes de DataStore (puede ser null).
+     * Llama al endpoint de home y al endpoint de misiones diarias
+     * usando el token JWT (puede ser null).
      */
     fun fetchHomeData(token: String?) {
         viewModelScope.launch {
             _uiState.value = HomeUiState.Loading
 
             try {
-                // Siempre generamos un String para el header
-                // Si no hay token, va vacío (el backend decidirá qué hacer)
                 val authHeader = "Bearer ${token ?: ""}"
 
-                val response = api.getHomeData(authHeader)
+                // 1) Home
+                val homeResponse = api.getHomeData(authHeader)
 
-                if (response.isSuccessful && response.body() != null) {
-                    val body: HomeResponse = response.body()!!
+                // 2) Misiones diarias
+                val dailyResponse = api.getDailyMissions(authHeader)
 
-                    val appData = body.toAppData()
+                if (homeResponse.isSuccessful && homeResponse.body() != null &&
+                    dailyResponse.isSuccessful && dailyResponse.body() != null
+                ) {
+                    val homeBody: HomeResponse = homeResponse.body()!!
+                    val remoteMissions: List<MissionRemote> =
+                        dailyResponse.body()!!.misiones
+
+                    // Construimos AppData mezclando Home + Daily Missions
+                    val appData = homeBody.toAppData(remoteMissions)
 
                     _uiState.value = HomeUiState.Success(appData)
+
                 } else {
+                    val homeError = homeResponse.errorBody()?.string().orEmpty()
+                    val dailyError = dailyResponse.errorBody()?.string().orEmpty()
+
                     _uiState.value = HomeUiState.Error(
-                        "Fallo al cargar datos: " +
-                                response.errorBody()?.string().orEmpty()
+                        "Fallo al cargar datos.\n" +
+                                "Home: $homeError\n" +
+                                "Misiones: $dailyError"
                     )
                 }
             } catch (e: Exception) {
@@ -63,29 +76,42 @@ class HomeViewModel(
     }
 }
 
-// ================== MAPEO HomeResponse -> AppData ==================
-private fun HomeResponse.toAppData(): AppData {
-    // Claves que esperas en "Dias" (ajusta a las que te regresen)
-    val diasOrden: List<String> = listOf("L", "M", "M2", "J", "V", "S", "D")
+// ================== MAPEOS A MODELOS DE UI ==================
 
-    // Si Dias viene null, usamos mapa vacío para evitar NPE
+/**
+ * Mapea la respuesta de /home + la lista de misiones diarias
+ * al modelo AppData que usa tu UI.
+ */
+private fun HomeResponse.toAppData(
+    remoteMissions: List<MissionRemote>
+): AppData {
+
+    // 🔥 CLAVES DEL BACKEND → LETRA QUE MOSTRARÁS EN LA UI
+    val diasOrden: List<Pair<String, String>> = listOf(
+        "Lunes" to "L",
+        "Martes" to "M",
+        "Miercoles" to "Mi",
+        "Jueves" to "J",
+        "Viernes" to "V",
+        "Sabado" to "S",
+        "Domingo" to "D"
+    )
+
+    // Mapa real del backend
     val diasMap: Map<String, Boolean> = this.dias.orEmpty()
 
-    val dailyProgress: List<DayProgress> = diasOrden.map { key ->
+    // Aquí se corrige el completed para que coincida con el backend
+    val dailyProgress: List<DayProgress> = diasOrden.map { (backendKey, uiLabel) ->
         DayProgress(
-            day = key,
-            completed = diasMap[key] == true
+            day = uiLabel,
+            completed = diasMap[backendKey] == true
         )
     }
 
-    val dailyMissions: List<Mission> = listOf(
-        Mission("Misión 1", this.mision1 ?: 0, 50),
-        Mission("Misión 2", this.mision2 ?: 0, 50),
-        Mission("Misión 3", this.mision3 ?: 0, 50),
-    )
+    // 🔹 Misiones traídas desde /missions/daily
+    val dailyMissions: List<Mission> = remoteMissions.map { it.toUiMission() }
 
-    // Progreso viene como Double (decimal) del backend
-    // Lo limitamos entre 0 y 100 y luego lo convertimos a Int para la UI
+    // Progreso general (viene como Double)
     val progresoGeneralInt: Int = ((this.progreso ?: 0.0)
         .coerceIn(0.0, 100.0))
         .toInt()
@@ -108,5 +134,16 @@ private fun HomeResponse.toAppData(): AppData {
         generalProgress = generalProgress,
         streakDays = this.racha ?: 0,
         lessons = lessons
+    )
+}
+
+/**
+ * Mapea una MissionRemote (del backend) a tu modelo de UI Mission.
+ */
+private fun MissionRemote.toUiMission(): Mission {
+    return Mission(
+        name = this.nombre,
+        current = this.progreso_actual,
+        max = this.meta
     )
 }
