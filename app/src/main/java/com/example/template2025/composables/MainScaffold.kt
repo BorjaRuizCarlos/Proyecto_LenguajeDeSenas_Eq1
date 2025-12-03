@@ -129,7 +129,7 @@ fun MainScaffold(
                 TopAppBar(
                     title = {
                         Column {
-                            Text("Template App", color = Color.White)
+
 
                         }
                     },

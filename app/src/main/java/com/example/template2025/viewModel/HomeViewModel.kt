@@ -123,9 +123,9 @@ private fun HomeResponse.toAppData(
     )
 
     val lessons: List<Module> = listOf(
-        Module("Módulo 1", this.progresoModulo1 ?: 0, 50),
-        Module("Módulo 2", this.progresoModulo2 ?: 0, 50),
-        Module("Módulo 3", this.progresoModulo3 ?: 0, 50),
+        Module("Módulo 1", this.progresoModulo1 ?: 0, 100),
+        Module("Módulo 2", this.progresoModulo2 ?: 0, 100),
+        Module("Módulo 3", this.progresoModulo3 ?: 0, 100),
     )
 
     return AppData(
