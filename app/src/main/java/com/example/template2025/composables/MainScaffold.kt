@@ -22,7 +22,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -41,7 +40,9 @@ import com.example.template2025.ui.theme.BlueLight
 import com.example.template2025.ui.theme.Template2025Theme
 import com.example.template2025.viewModel.ProfileViewModel
 import com.example.template2025.viewModel.ProfileViewModelFactory
-import com.example.template2025.ui.theme.MissionUi
+import com.example.template2025.viewModel.DailyMissionsUiState
+import com.example.template2025.viewModel.DailyMissionsViewModel
+import com.example.template2025.viewModel.DailyMissionsViewModelFactory
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -108,7 +109,8 @@ fun MainScaffold(
                         bold = true
                     ) {
                         scope.launch {
-                            TokenStore.clearAll(context) // Limpia todo, token y avatar
+                            // Limpia todo: token, avatar, etc.
+                            TokenStore.clearAll(context)
                             DataStore.setLoggedIn(context, false)
                             drawerState.close()
                         }
@@ -126,14 +128,7 @@ fun MainScaffold(
                 TopAppBar(
                     title = {
                         Column {
-                            Text("Template App", color = Color.White)
-                            Text(
-                                text = if (!safeToken.isNullOrBlank())
-                                    "Token: ${safeToken.take(12)}..."
-                                else "Sin token",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = Color.White.copy(alpha = 0.7f)
-                            )
+
                         }
                     },
                     navigationIcon = {
@@ -163,7 +158,7 @@ fun MainScaffold(
                     HomeScreen(navController = nav, token = safeToken)
                 }
 
-                // GRAFO DE PERFIL (Nuevo)
+                // GRAFO DE PERFIL
                 profileGraph(navController = nav, token = safeToken)
 
                 // AJUSTES
@@ -179,7 +174,7 @@ fun MainScaffold(
                     ModulesScreen(navController = nav)
                 }
 
-                 // DETALLE DE MÓDULO
+                // DETALLE DE MÓDULO
                 composable(
                     route = Route.InsideModule.route,
                     arguments = listOf(navArgument("moduleId") { type = NavType.IntType })
@@ -187,16 +182,91 @@ fun MainScaffold(
                     val moduleId = backStackEntry.arguments?.getInt("moduleId")
                     InsideModulesScreen(navController = nav, moduleId = moduleId)
                 }
-                
-                // MISIONES DIARIAS
-                composable(Route.DailyQuests.route) {
-                    MisionesDiariasScreen(
-                        missions = listOf(
-                            MissionUi("Gana 50 XP", 43, 50, R.drawable.ic_mision_xp),
-                            MissionUi("Completa 2 lecciones", 1, 2, R.drawable.ic_mision_lecciones),
-                            MissionUi("Termina un modulo", 43, 50, R.drawable.ic_mision_modulo)
-                        )
+
+                // ⭐ NUEVA ROUTE: LessonsContent
+                composable(
+                    route = Route.LessonsContent.route,
+                    arguments = listOf(
+                        navArgument("moduleId") { type = NavType.IntType },
+                        navArgument("lessonId") { type = NavType.IntType }
                     )
+                ) { backStackEntry ->
+                    val moduleId = backStackEntry.arguments?.getInt("moduleId")
+                    val lessonId = backStackEntry.arguments?.getInt("lessonId")
+
+                    LessonsContentScreen(
+                        navController = nav,
+                        moduleId = moduleId,
+                        lessonId = lessonId
+                    )
+                }
+
+                // 🔹 MISIONS DIARIAS – LÓGICA DEL PRIMER MAINScaffold
+                composable(Route.DailyQuests.route) {
+
+                    val tokenMissions = safeToken
+
+                    if (tokenMissions.isNullOrBlank()) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(BlueLight),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = "No se encontró token.\nVuelve a iniciar sesión.",
+                                color = MaterialTheme.colorScheme.error
+                            )
+                        }
+                    } else {
+                        val apiService = ApiService.RetrofitClient.apiService
+
+                        val viewModel: DailyMissionsViewModel = viewModel(
+                            factory = DailyMissionsViewModelFactory(apiService)
+                        )
+
+                        LaunchedEffect(tokenMissions) {
+                            viewModel.fetchDailyMissions(tokenMissions)
+                        }
+
+                        val uiState by viewModel.uiState.collectAsState()
+
+                        when (uiState) {
+                            is DailyMissionsUiState.Loading -> {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .background(BlueLight),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    CircularProgressIndicator()
+                                }
+                            }
+
+                            is DailyMissionsUiState.Error -> {
+                                val message = (uiState as DailyMissionsUiState.Error).message
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .background(BlueLight),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text(
+                                        text = "Error al cargar misiones:\n$message",
+                                        color = MaterialTheme.colorScheme.error
+                                    )
+                                }
+                            }
+
+                            is DailyMissionsUiState.Success -> {
+                                val missions = (uiState as DailyMissionsUiState.Success).missions
+                                MisionesDiariasScreen(
+                                    missions = missions,
+                                    modifier = Modifier.fillMaxSize()
+                                )
+                            }
+                        }
+                    }
                 }
 
                 // ABECEDARIO
