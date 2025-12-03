@@ -135,6 +135,7 @@ fun toDirectDriveUrl(originalUrl: String): String {
     }
 }
 
+
 // Cliente HTTP para hacer HEAD y detectar tipo de contenido
 private val mediaHeadClient by lazy { OkHttpClient() }
 
@@ -417,7 +418,7 @@ fun PalabraDiccionarioScreen(
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = "Volver",
+                    text = "Continuar",
                     color = Color.White,
                     fontSize = 18.sp,
                     fontWeight = androidx.compose.ui.text.font.FontWeight.Bold

@@ -5,4 +5,10 @@
         <domain includeSubdomains="true">10.0.2.2</domain>
         <domain includeSubdomains="true">localhost</domain>
     </domain-config>
+
+    <!-- Permite HTTP en claro hacia el backend de producción -->
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="true">androidbackend-production-app.railway.app</domain>
+        <domain includeSubdomains="true">androidbackend-production-1dbe.up.railway.app</domain>
+    </domain-config>
 </network-security-config>

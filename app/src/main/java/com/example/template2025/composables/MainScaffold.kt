@@ -22,6 +22,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -37,12 +38,13 @@ import com.example.template2025.dataStore.TokenStore
 import com.example.template2025.navigation.Route
 import com.example.template2025.screens.*
 import com.example.template2025.ui.theme.BlueLight
+import com.example.template2025.ui.theme.MissionUi
 import com.example.template2025.ui.theme.Template2025Theme
-import com.example.template2025.viewModel.ProfileViewModel
-import com.example.template2025.viewModel.ProfileViewModelFactory
 import com.example.template2025.viewModel.DailyMissionsUiState
 import com.example.template2025.viewModel.DailyMissionsViewModel
 import com.example.template2025.viewModel.DailyMissionsViewModelFactory
+import com.example.template2025.viewModel.ProfileViewModel
+import com.example.template2025.viewModel.ProfileViewModelFactory
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -109,8 +111,7 @@ fun MainScaffold(
                         bold = true
                     ) {
                         scope.launch {
-                            // Limpia todo: token, avatar, etc.
-                            TokenStore.clearAll(context)
+                            TokenStore.clearToken(context)
                             DataStore.setLoggedIn(context, false)
                             drawerState.close()
                         }
@@ -128,6 +129,7 @@ fun MainScaffold(
                 TopAppBar(
                     title = {
                         Column {
+                            Text("Template App", color = Color.White)
 
                         }
                     },
@@ -158,55 +160,15 @@ fun MainScaffold(
                     HomeScreen(navController = nav, token = safeToken)
                 }
 
-                // GRAFO DE PERFIL
+                // GRAFO DE PERFIL (Nuevo)
                 profileGraph(navController = nav, token = safeToken)
 
-                // AJUSTES
-                composable(Route.Settings.route) {
-                    SettingsScreen(
-                        navController = nav,
-                        token = safeToken
-                    )
-                }
-
-                // MÓDULOS
-                composable(Route.Modules.route) {
-                    ModulesScreen(navController = nav)
-                }
-
-                // DETALLE DE MÓDULO
-                composable(
-                    route = Route.InsideModule.route,
-                    arguments = listOf(navArgument("moduleId") { type = NavType.IntType })
-                ) { backStackEntry ->
-                    val moduleId = backStackEntry.arguments?.getInt("moduleId")
-                    InsideModulesScreen(navController = nav, moduleId = moduleId)
-                }
-
-                // ⭐ NUEVA ROUTE: LessonsContent
-                composable(
-                    route = Route.LessonsContent.route,
-                    arguments = listOf(
-                        navArgument("moduleId") { type = NavType.IntType },
-                        navArgument("lessonId") { type = NavType.IntType }
-                    )
-                ) { backStackEntry ->
-                    val moduleId = backStackEntry.arguments?.getInt("moduleId")
-                    val lessonId = backStackEntry.arguments?.getInt("lessonId")
-
-                    LessonsContentScreen(
-                        navController = nav,
-                        moduleId = moduleId,
-                        lessonId = lessonId
-                    )
-                }
-
-                // 🔹 MISIONS DIARIAS – LÓGICA DEL PRIMER MAINScaffold
+                // 🔹 MISIONS DIARIAS – AQUÍ VA EL NUEVO CÓDIGO
                 composable(Route.DailyQuests.route) {
 
-                    val tokenMissions = safeToken
+                    val token = safeToken
 
-                    if (tokenMissions.isNullOrBlank()) {
+                    if (token.isNullOrBlank()) {
                         Box(
                             modifier = Modifier
                                 .fillMaxSize()
@@ -225,8 +187,8 @@ fun MainScaffold(
                             factory = DailyMissionsViewModelFactory(apiService)
                         )
 
-                        LaunchedEffect(tokenMissions) {
-                            viewModel.fetchDailyMissions(tokenMissions)
+                        LaunchedEffect(token) {
+                            viewModel.fetchDailyMissions(token)
                         }
 
                         val uiState by viewModel.uiState.collectAsState()
@@ -268,6 +230,21 @@ fun MainScaffold(
                         }
                     }
                 }
+                // AJUSTES
+                composable(Route.Settings.route) {
+                    SettingsScreen(
+                        navController = nav,
+                        token = safeToken
+                    )
+                }
+
+                // MÓDULOS
+                composable(Route.Modules.route) {
+                    ModulesScreen(
+                        navController = nav,
+                        token = safeToken
+                    )
+                }
 
                 // ABECEDARIO
                 composable(Route.Abecedario.route) {
@@ -279,17 +256,16 @@ fun MainScaffold(
                     )
                 }
 
-                // DICCIONARIO (Buscador)
+                // DICCIONARIO
                 composable(Route.Diccionario.route) {
                     BuscadorDiccionarioRoute(
-                        token = safeToken,
                         onWordClick = { wordId ->
                             nav.navigate(Route.DiccionarioWord.createRoute(wordId))
-                        }
+                        },
+                        token = safeToken   // 👈 importantísimo
                     )
                 }
 
-                // DICCIONARIO (Detalle de palabra)
                 composable(
                     route = Route.DiccionarioWord.route,
                     arguments = listOf(navArgument("wordId") { type = NavType.IntType })
@@ -297,14 +273,58 @@ fun MainScaffold(
                     val wordId = backStackEntry.arguments?.getInt("wordId") ?: 0
                     PalabraDiccionarioRoute(
                         wordId = wordId,
-                        token = safeToken,
+                        token = safeToken,              // 👈 le pasas el token
                         onBack = { nav.popBackStack() }
+                    )
+                }
+                // ⭐ NUEVA ROUTE: InsideModule
+// ... inside MainScaffold.kt
+
+                // ⭐ NUEVA ROUTE: InsideModule
+// in MainScaffold.kt
+
+// ...
+
+                // ⭐ NUEVA ROUTE: InsideModule
+                composable(route = Route.InsideModule.route,
+                    arguments = listOf(
+                        navArgument("moduleId") { type = NavType.IntType }
+                    )
+                ) { backStackEntry ->
+                    val moduleId = backStackEntry.arguments?.getInt("moduleId")
+                    InsideModulesScreen(
+                        navController = nav,
+                        moduleId = moduleId,
+                        token = safeToken
+                    )
+                }
+
+// ...
+
+
+                // ⭐ NUEVA ROUTE: LessonsContent
+                composable(
+                    route = Route.LessonsContent.route,
+                    arguments = listOf(
+                        navArgument("moduleId") { type = NavType.IntType },
+                        navArgument("lessonId") { type = NavType.IntType }
+                    )
+                ) { backStackEntry ->
+                    val moduleId = backStackEntry.arguments?.getInt("moduleId")
+                    val lessonId = backStackEntry.arguments?.getInt("lessonId")
+
+                    LessonsContentScreen(
+                        navController = nav,
+                        moduleId = moduleId,
+                        lessonId = lessonId,
+                        token=safeToken
                     )
                 }
             }
         }
     }
 }
+
 
 // Función para el grafo de navegación de perfil
 fun NavGraphBuilder.profileGraph(navController: NavHostController, token: String?) {
@@ -314,11 +334,13 @@ fun NavGraphBuilder.profileGraph(navController: NavHostController, token: String
             val parentEntry = remember(backStackEntry) {
                 navController.getBackStackEntry(Route.ProfileGraph.route)
             }
-            val context = LocalContext.current
             val apiService = remember { ApiService.RetrofitClient.apiService }
             val profileViewModel: ProfileViewModel = viewModel(
                 viewModelStoreOwner = parentEntry,
-                factory = ProfileViewModelFactory(apiService, context)
+                factory = ProfileViewModelFactory(
+                    apiService,
+                    context = LocalContext.current
+                )
             )
 
             ProfileScreen(
@@ -332,11 +354,10 @@ fun NavGraphBuilder.profileGraph(navController: NavHostController, token: String
             val parentEntry = remember(backStackEntry) {
                 navController.getBackStackEntry(Route.ProfileGraph.route)
             }
-            val context = LocalContext.current
             val apiService = remember { ApiService.RetrofitClient.apiService }
             val profileViewModel: ProfileViewModel = viewModel(
                 viewModelStoreOwner = parentEntry,
-                factory = ProfileViewModelFactory(apiService, context)
+                factory = ProfileViewModelFactory(apiService, context = LocalContext.current)
             )
 
             EditPhotoScreen(
@@ -344,6 +365,8 @@ fun NavGraphBuilder.profileGraph(navController: NavHostController, token: String
                 onBack = { navController.popBackStack() }
             )
         }
+        // Aquí podrías añadir otras pantallas que compartan el mismo ViewModel
+        // composable(Route.ProfileNotifications.route) { ... }
     }
 }
 
