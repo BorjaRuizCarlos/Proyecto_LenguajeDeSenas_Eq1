@@ -29,20 +29,46 @@ fun GlassOutlinedField(
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
-        // Altura mínima “compacta” que no corta el placeholder (≈52–56dp)
+
+        // Altura mínima bonita y consistente
         modifier = modifier.heightIn(min = 52.dp),
+
         singleLine = true,
-        placeholder = { Text(placeholder) },
+
+        // Placeholder negro claro
+        placeholder = {
+            Text(
+                text = placeholder,
+                color = Color.Black.copy(alpha = 0.45f)
+            )
+        },
+
+        // TEXTO NEGRO ✔
+        textStyle = TextStyle(
+            color = Color.Black,
+            fontSize = 16.sp
+        ),
+
         visualTransformation = visualTransformation,
-        textStyle = TextStyle(fontSize = 16.sp),
+
         shape = RoundedCornerShape(15.dp),
+
         colors = OutlinedTextFieldDefaults.colors(
             focusedContainerColor = glass,
             unfocusedContainerColor = glass,
             disabledContainerColor = glass,
+
             focusedBorderColor = Color.Transparent,
             unfocusedBorderColor = Color.Transparent,
-            disabledBorderColor = Color.Transparent
+            disabledBorderColor = Color.Transparent,
+
+            // Cursor negro ✔
+            cursorColor = Color.Black,
+
+            // Texto negro (refuerzo por si APIs internas cambian) ✔
+            focusedTextColor = Color.Black,
+            unfocusedTextColor = Color.Black,
+            disabledTextColor = Color.Black.copy(alpha = 0.5f)
         )
     )
 }

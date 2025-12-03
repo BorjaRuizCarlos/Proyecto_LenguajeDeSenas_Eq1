@@ -123,6 +123,7 @@ fun LoginScreen(
                     onValueChange = { email = it },
                     modifier = fieldWidth,
                     placeholder = "Correo"
+
                 )
 
                 Spacer(Modifier.height(14.dp))
@@ -133,6 +134,7 @@ fun LoginScreen(
                     modifier = fieldWidth,
                     placeholder = "Contraseña",
                     visualTransformation = PasswordVisualTransformation()
+
                 )
 
                 Spacer(Modifier.height(24.dp))

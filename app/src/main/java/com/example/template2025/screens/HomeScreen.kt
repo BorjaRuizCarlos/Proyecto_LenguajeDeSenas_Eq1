@@ -210,7 +210,7 @@ fun ModuleProgressBar(module: Module) {
             )
             Text(
                 text = "${module.current}/${module.max}",
-                color = Color.White,
+                color = Color.Black,
                 fontSize = 12.sp,
                 modifier = Modifier.align(Alignment.Center)
             )
@@ -248,7 +248,7 @@ fun MissionProgressBar(mission: Mission) {
             )
             Text(
                 text = "${mission.current}/${mission.max}",
-                color = Color.White,
+                color = Color.Black,
                 fontSize = 12.sp,
                 modifier = Modifier.align(Alignment.Center)
             )
