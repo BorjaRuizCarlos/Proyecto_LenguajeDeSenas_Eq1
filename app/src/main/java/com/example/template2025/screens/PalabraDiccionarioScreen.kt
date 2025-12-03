@@ -418,7 +418,7 @@ fun PalabraDiccionarioScreen(
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = "Volver",
+                    text = "Continuar",
                     color = Color.White,
                     fontSize = 18.sp,
                     fontWeight = androidx.compose.ui.text.font.FontWeight.Bold

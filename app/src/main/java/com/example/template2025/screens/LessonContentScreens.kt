@@ -189,9 +189,8 @@ fun LessonsContentScreen(
                     }
                     val correctTitleIndex = opcionesFixed.indexOf(correctTitle)
 
-                    var selectedIndex by remember { mutableStateOf(-1) }
-                    var isCorrect by remember { mutableStateOf(false) }
-
+                    var selectedIndex by remember(correctTitle) { mutableStateOf(-1) }
+                    var isCorrect by remember(correctTitle) { mutableStateOf(false) }
                     PreguntaLeccionScreen(
                         pregunta = "¿Qué significa la seña mostrada?",
                         respuestas = opcionesFixed,
@@ -233,7 +232,7 @@ fun LessonsContentScreen(
 
                     FinalQuizScreen(
                         questionNumber = questionNumber,
-                        pregunta = "¿Cuál es la seña de: $correctTitle?",
+                        pregunta = "¿Qué significa la seña mostrada?",
                         mediaUrl = state.step.imageUrl,
                         respuestas = opciones,
                         onRespuestaClick = { idx ->
@@ -818,42 +817,6 @@ fun FinalQuizStartScreen(
             Spacer(Modifier.height(16.dp))
 
             // Detalles
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = Color(0xFFE6F0F8)
-                )
-            ) {
-                Column(
-                    modifier = Modifier.padding(16.dp),
-                    horizontalAlignment = Alignment.Start
-                ) {
-                    Text(
-                        text = "📝 5 preguntas seguidas",
-                        color = BlueDark,
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(vertical = 8.dp)
-                    )
-                    Text(
-                        text = "✅ Selecciona la respuesta correcta",
-                        color = BlueDark,
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(vertical = 8.dp)
-                    )
-                    Text(
-                        text = "🎥 Verás el video de la respuesta correcta",
-                        color = BlueDark,
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(vertical = 8.dp)
-                    )
-                }
-            }
 
             Spacer(Modifier.weight(1f))
 
