@@ -48,7 +48,8 @@ fun EditPhotoScreen(
     // Llama al Composable "tonto" que solo se encarga de la UI
     EditPhotoScreenContent(
         initialAvatar = profileViewModel.selectedAvatarResId.value,
-        onSave = { newAvatarResId ->
+        onSave = {
+            newAvatarResId ->
             profileViewModel.updateAvatar(newAvatarResId)
             onBack()
         },

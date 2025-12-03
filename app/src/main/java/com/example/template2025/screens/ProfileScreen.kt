@@ -49,7 +49,7 @@ import com.example.template2025.viewModel.ProfileViewModelFactory
 @Composable
 fun ProfileScreen(
     navController: NavController,
-    token: String?, 
+    token: String?,
     profileViewModel: ProfileViewModel // Vuelve a aceptar el ViewModel
 ) {
     // Si no hay token, avisamos y NO llamamos a la API
@@ -111,6 +111,7 @@ fun ProfileScreen(
             // Obtenemos los datos del ViewModel una vez que el estado es Success
             val avatarRes by profileViewModel.selectedAvatarResId
             val username by profileViewModel.username
+            val email by profileViewModel.email // 🔹 Obtenemos el correo
             val bio by profileViewModel.bio
 
             // 👇 El mismo UI que ya tenías, ahora dentro del caso Success
@@ -183,7 +184,7 @@ fun ProfileScreen(
                             Spacer(Modifier.height(4.dp))
 
                             Text(
-                                text = "ricardo30@gmail.com", // si luego quieres, también lo pasamos al VM
+                                text = email, // 🔹 Usamos el correo del ViewModel
                                 fontSize = 14.sp,
                                 color = Color(0xFFE5EBFF)
                             )
