@@ -10,6 +10,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -22,14 +23,17 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.template2025.ui.theme.Template2025Theme
+import com.example.template2025.viewModel.ProfileViewModel
 
 @Composable
 fun SettingsScreen(
     navController: NavController,
-    token: String? // 🔹 Recibe el token
+    token: String?, // 🔹 Recibe el token
+    profileViewModel: ProfileViewModel // 🔹 Recibe el ViewModel compartido
 ) {
     // Si no hay token, no mostramos el contenido principal
     if (token.isNullOrBlank()) {
@@ -49,9 +53,14 @@ fun SettingsScreen(
         return
     }
 
-    // estados locales (por ahora no dependen de un ViewModel)
-    var username by remember { mutableStateOf("Usuario de prueba") }
-    var bio by remember { mutableStateOf("Bio de prueba para ajustes") }
+    // estados locales inicializados con el valor actual del ViewModel
+    var username by remember { mutableStateOf(profileViewModel.username.value) }
+    var bio by remember { mutableStateOf(profileViewModel.bio.value) }
+
+    // Sincronizamos el estado si el valor del ViewModel cambia desde fuera
+    LaunchedEffect(profileViewModel.username.value) {
+        username = profileViewModel.username.value
+    }
 
     Box(
         modifier = Modifier
@@ -121,7 +130,8 @@ fun SettingsScreen(
             // Botón guardar
             Button(
                 onClick = {
-                    // Aquí iría la lógica para guardar los datos en el ViewModel/API
+                    // Llamamos a la nueva función del ViewModel
+                    profileViewModel.updateProfile(token, username, newBio = bio)
                     navController.popBackStack()
                 },
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF21409A)),
@@ -149,6 +159,8 @@ fun SettingsScreen(
 @Composable
 fun SettingsScreenPreview() {
     Template2025Theme {
-        SettingsScreen(navController = rememberNavController(), token = "fake_token_for_preview")
+        // El preview no puede crear un VM real, esta pantalla necesita el grafo de navegación
+        // para obtener el VM compartido. Se puede previsualizar en un estado sin token.
+        SettingsScreen(navController = rememberNavController(), token = "fake_token", profileViewModel = viewModel()) // Error esperado en preview
     }
 }

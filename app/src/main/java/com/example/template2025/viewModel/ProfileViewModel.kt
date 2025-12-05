@@ -8,6 +8,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.template2025.R
 import com.example.template2025.data.api.ApiService
+import com.example.template2025.data.api.UpdateProfileRequest
 import com.example.template2025.dataStore.TokenStore
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -15,7 +16,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 
-// 1. Data class que representa la respuesta de la API /profile/me
+// Data class que representa la respuesta de la API /profile/me
 data class UserProfile(
     val id_usuario: Int,
     val nombre: String,
@@ -25,14 +26,13 @@ data class UserProfile(
     val creado_en: String
 )
 
-// 2. Clase sellada para el estado de la UI
+// Clase sellada para el estado de la UI
 sealed class ProfileUiState {
     data object Loading : ProfileUiState()
     data class Success(val userProfile: UserProfile) : ProfileUiState()
     data class Error(val message: String) : ProfileUiState()
 }
 
-// 3. El ViewModel ahora recibe el Context
 class ProfileViewModel(private val apiService: ApiService, private val context: Context) : ViewModel() {
     private val _uiState = MutableStateFlow<ProfileUiState>(ProfileUiState.Loading)
     val uiState: StateFlow<ProfileUiState> = _uiState.asStateFlow()
@@ -48,12 +48,11 @@ class ProfileViewModel(private val apiService: ApiService, private val context: 
 
     private val _selectedAvatarResId = mutableStateOf(R.drawable.ic_character_completed) // Valor por defecto
     val selectedAvatarResId: State<Int> = _selectedAvatarResId
-    
+
     init {
-        // Al iniciar el VM, leemos el avatar guardado
         viewModelScope.launch {
             val savedAvatarId = TokenStore.avatarIdFlow(context).firstOrNull()
-            if (savedAvatarId != null) {
+            if (savedAvatarId != null && savedAvatarId != 0) { // Check for default value
                 _selectedAvatarResId.value = savedAvatarId
             }
         }
@@ -69,10 +68,8 @@ class ProfileViewModel(private val apiService: ApiService, private val context: 
                 if (response.isSuccessful && response.body() != null) {
                     val userProfile = response.body()!!
                     _uiState.value = ProfileUiState.Success(userProfile)
-
                     _username.value = userProfile.nombre
                     _email.value = userProfile.correo
-
                 } else {
                     val errorBody = response.errorBody()?.string() ?: "Error desconocido"
                     _uiState.value = ProfileUiState.Error("Error: ${response.code()} - $errorBody")
@@ -85,15 +82,35 @@ class ProfileViewModel(private val apiService: ApiService, private val context: 
 
     fun updateAvatar(newAvatarResId: Int) {
         viewModelScope.launch {
-            // Actualizamos el estado en memoria
             _selectedAvatarResId.value = newAvatarResId
-            // Guardamos la elección en DataStore
             TokenStore.saveAvatarId(context, newAvatarResId)
+        }
+    }
+
+    // Función para actualizar nombre y bio
+    fun updateProfile(token: String, newName: String, newBio: String) {
+        // Actualizamos la bio localmente
+        _bio.value = newBio
+        
+        // Llamamos a la API para actualizar el nombre
+        viewModelScope.launch {
+            try {
+                val authHeader = "Bearer $token"
+                val requestBody = UpdateProfileRequest(nombre = newName)
+                val response = apiService.updateProfile(authHeader, requestBody)
+
+                if (response.isSuccessful && response.body() != null) {
+                    _username.value = response.body()!!.nombre
+                } else {
+                    println("Error al actualizar el nombre: ${response.errorBody()?.string()}")
+                }
+            } catch (e: Exception) {
+                println("Excepción al actualizar el nombre: ${e.message}")
+            }
         }
     }
 }
 
-// 4. La Factory ahora también recibe el Context
 class ProfileViewModelFactory(
     private val apiService: ApiService,
     private val context: Context
