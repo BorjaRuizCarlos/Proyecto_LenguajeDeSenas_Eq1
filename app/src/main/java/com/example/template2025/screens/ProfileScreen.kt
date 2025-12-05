@@ -240,14 +240,6 @@ fun ProfileScreen(
                         ) {
                             //navController.navigate(Route.ProfileNotifications.route)
                         }
-
-                        ProfileOptionCard(
-                            title = "Privacidad y seguridad",
-                            subtitle = "Contraseña, sesión y datos",
-                            icon = Icons.Default.Lock
-                        ) {
-                            //navController.navigate(Route.ProfilePrivacy.route)
-                        }
                     }
                 }
             }
