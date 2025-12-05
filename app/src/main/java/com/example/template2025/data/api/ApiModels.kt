@@ -73,3 +73,8 @@ data class LessonAnswerRequest(
  */
 
 // ====== MISIONES DIARIAS ======
+
+// ====== CAMBIAR NOMBRE DE USUARIO ======
+data class UpdateProfileRequest(
+    @SerializedName("nombre") val nombre: String?,
+)

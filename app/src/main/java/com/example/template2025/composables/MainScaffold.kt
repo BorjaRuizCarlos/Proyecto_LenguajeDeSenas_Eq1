@@ -160,8 +160,9 @@ fun MainScaffold(
                     HomeScreen(navController = nav, token = safeToken)
                 }
 
-                // GRAFO DE PERFIL (Nuevo)
+                // GRAFO DE PERFIL
                 profileGraph(navController = nav, token = safeToken)
+
 
                 // 🔹 MISIONS DIARIAS – AQUÍ VA EL NUEVO CÓDIGO
                 composable(Route.DailyQuests.route) {
@@ -229,13 +230,6 @@ fun MainScaffold(
                             }
                         }
                     }
-                }
-                // AJUSTES
-                composable(Route.Settings.route) {
-                    SettingsScreen(
-                        navController = nav,
-                        token = safeToken
-                    )
                 }
 
                 // MÓDULOS
@@ -365,8 +359,28 @@ fun NavGraphBuilder.profileGraph(navController: NavHostController, token: String
                 onBack = { navController.popBackStack() }
             )
         }
-        // Aquí podrías añadir otras pantallas que compartan el mismo ViewModel
-        // composable(Route.ProfileNotifications.route) { ... }
+
+        composable(Route.Settings.route) { backStackEntry ->
+            // Reutiliza la misma lógica para obtener el ViewModel compartido
+            val parentEntry = remember(backStackEntry) {
+                navController.getBackStackEntry(Route.ProfileGraph.route)
+            }
+            val apiService = remember { ApiService.RetrofitClient.apiService }
+            val profileViewModel: ProfileViewModel = viewModel(
+                viewModelStoreOwner = parentEntry,
+                factory = ProfileViewModelFactory(
+                    apiService,
+                    context = LocalContext.current
+                )
+            )
+
+            // Llama a SettingsScreen pasándole el ViewModel
+            SettingsScreen(
+                navController = navController,
+                token = token,
+                profileViewModel = profileViewModel // ¡Listo! El error se resuelve.
+            )
+        }
     }
 }
 

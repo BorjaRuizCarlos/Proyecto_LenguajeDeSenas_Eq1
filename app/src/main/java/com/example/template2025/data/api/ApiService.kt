@@ -11,6 +11,7 @@ import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.Header
 import retrofit2.http.POST
+import retrofit2.http.PUT
 import retrofit2.http.Path
 import retrofit2.http.Query
 
@@ -66,6 +67,12 @@ interface ApiService {
     suspend fun getProfile(
         @Header("Authorization") authorization: String
     ): Response<UserProfile>
+
+    @PUT("profile/update")
+    suspend fun updateProfile(
+        @Header("Authorization") authorization: String,
+        @Body body: UpdateProfileRequest
+    ): Response<UserProfile> // Devuelve el perfil actualizado
 
     // ===================== DICCIONARIO =====================
 
